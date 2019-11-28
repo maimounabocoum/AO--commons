@@ -11,34 +11,49 @@ classdef stats_t
             % definition of stats_t class
             obj.Fs = Fs ;
         end
-        
-        
-        function mu = average(X)
-            mu = mean(X) ;
+              
+        function [t,mu] = average(obj,X)
+            
+            if size(X,1)== 1
+                X = X' ;
+            end
+            
+            mu = mean(X , 1) ;
+            t = (1/obj.Fs)*(1:size(X,1));
+            
+        end
+
+        function mu = standard_dev(obj,X)
+            mu = sqrt( var(X, 0 , 1) ) ;
         end
         
-        function PSD = PowSpecDens(obj, x )
+        function [f,PSD] = PowSpecDens(obj, x )
         
             % tranpose if vector
-            if size( x , 1 ) ==1
+            if size( x , 1 ) == 1
                 x = x' ;
             end
         N               = size( x ,1) ;
+        f               = ( (obj.Fs)/(N-1) )*( 0:(N/2) );
         XDFT            = fft( x );
         XDFT            = XDFT(1:((N/2)+1),:);
-        PSD           = (2/(N*obj.Fs))*abs(XDFT).^2;   
+        PSD             = (2/(N*obj.Fs))*abs(XDFT).^2;   
         
         end
         
         function e_t = Energy_t(obj, x )
+            
+            if size(x,1)==1
+                x = x' ;
+            end
            
-            e_t = (1/(obj.Fs))*sum( abs(x).^2 ) ;
+            e_t = (1/(obj.Fs))*sum( abs(x).^2 , 1 ) ;
             
         end
         
         function e_psd = Energy_psd(obj, PSD_in )
-           
-            e_psd = sum( PSD_in ) - PSD_in(1)/2- PSD_in(end)/2 ;
+            
+            e_psd = sum( PSD_in , 1 ) - PSD_in(1,:)/2- PSD_in(end,:)/2 ;
             
         end        
         

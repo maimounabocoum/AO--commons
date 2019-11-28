@@ -40,7 +40,7 @@ classdef TF_t
             obj.dt = 1/Fs; % in m
             obj.t = (-N/2:1:N/2-1)*obj.dt;
             obj.T = (N-1)*obj.dt;
-            obj.df = 1/obj.T;
+            obj.df = Fs/N ; % because it should match (N/2)df = Fs/2 according to Nyquist in DFT
             obj.f = (-N/2:1:N/2-1)*obj.df;
             obj.w = 2*pi*obj.f;
             obj.l(1:N/2)=-1540./obj.f(1:N/2); % wavelength
@@ -68,12 +68,12 @@ classdef TF_t
         function Ew  = fourier(obj, Et)
             %fftshift(Et);    %real(F) sera toujours positif pour phi=0
             % Ew=fft(ifftshift(Et),obj.N)*obj.tRange/obj.N;
-            Ew=fft(ifftshift(Et),obj.N)*((obj.N-1)/obj.N)*(1/obj.Fs);
+            Ew=fft(ifftshift(Et),obj.N)*(1/obj.Fs);
             Ew=fftshift(Ew);
         end
         function Et  = ifourier(obj, Ew)
             %Et=ifft(ifftshift(Ew),obj.N)*obj.N/obj.tRange;
-            Et=ifft(ifftshift(Ew),obj.N)*(obj.Fs)*(obj.N/(obj.N-1));
+            Et=ifft(ifftshift(Ew),obj.N)*(obj.Fs) ;
             Et=fftshift(Et);
         end
         function e_t = Tintegral(obj,f)
