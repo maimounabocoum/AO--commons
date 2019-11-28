@@ -4,8 +4,9 @@ classdef TF_t
     
     properties
         N       % number of point for fourier transform
-        tRange  
+        T  
         t       % position in m
+        Fs
         f       %frequency varaiable
         w       %frequency variable in rad
         l       %wavelength variable
@@ -31,14 +32,15 @@ classdef TF_t
             
             if nargin == 2
             N = varargin{1};
-            Fmax = varargin{2};
+            Fs = varargin{2};
             % Fmax corresponds to the mas sampling of image
             
+            obj.Fs = Fs ;
             obj.N = N;
-            obj.dt = 1/Fmax; % in m
+            obj.dt = 1/Fs; % in m
             obj.t = (-N/2:1:N/2-1)*obj.dt;
-            obj.tRange = (N-1)*obj.dt;
-            obj.df = 1/obj.tRange;
+            obj.T = (N-1)*obj.dt;
+            obj.df = 1/obj.T;
             obj.f = (-N/2:1:N/2-1)*obj.df;
             obj.w = 2*pi*obj.f;
             obj.l(1:N/2)=-1540./obj.f(1:N/2); % wavelength
@@ -63,15 +65,30 @@ classdef TF_t
             obj.l(N/2+2:N)= 1./obj.f(N/2+2:N);
             
         end
-        function Ew = fourier(obj, Et)
+        function Ew  = fourier(obj, Et)
             %fftshift(Et);    %real(F) sera toujours positif pour phi=0
-            Ew=fft(ifftshift(Et),obj.N)*obj.tRange/obj.N;
+            % Ew=fft(ifftshift(Et),obj.N)*obj.tRange/obj.N;
+            Ew=fft(ifftshift(Et),obj.N)*((obj.N-1)/obj.N)*(1/obj.Fs);
             Ew=fftshift(Ew);
         end
-        function Et = ifourier(obj, Ew)
-            Et=ifft(ifftshift(Ew),obj.N)*obj.N/obj.tRange;
+        function Et  = ifourier(obj, Ew)
+            %Et=ifft(ifftshift(Ew),obj.N)*obj.N/obj.tRange;
+            Et=ifft(ifftshift(Ew),obj.N)*(obj.Fs)*(obj.N/(obj.N-1));
             Et=fftshift(Et);
         end
+        function e_t = Tintegral(obj,f)
+            
+            e_t = ( obj.dt )*sum(f) ;
+            
+        end
+        function e_f = Fintegral(obj,f)
+            
+            e_f = ( obj.df )*sum(f) ; 
+            
+        end
+        
+        
+        
     end
     
 end
