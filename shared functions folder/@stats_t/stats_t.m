@@ -19,7 +19,7 @@ classdef stats_t
             end
             
             mu = mean(X , 1) ;
-            t = (1/obj.Fs)*(1:size(X,1));
+            t = (1:size(X,1));
             
         end
 
@@ -34,10 +34,15 @@ classdef stats_t
                 x = x' ;
             end
         N               = size( x ,1) ;
-        f               = ( (obj.Fs)/(N-1) )*( 0:(N/2) );
+        f               = ( (obj.Fs)/(N) )*( 0:(N/2) );
         XDFT            = fft( x );
         XDFT            = XDFT(1:((N/2)+1),:);
-        PSD             = (2/(N*obj.Fs))*abs(XDFT).^2;   
+        
+        % homogeneous to [x^2/Hz]
+        % PSD             = (2/(N*obj.Fs))*abs(XDFT).^2;  
+        
+        % homogeneous to [x^2/Hz]
+        PSD             = (2/(obj.Fs)^2)*abs(XDFT).^2;  
         
         end
         
@@ -53,7 +58,14 @@ classdef stats_t
         
         function e_psd = Energy_psd(obj, PSD_in )
             
-            e_psd = sum( PSD_in , 1 ) - PSD_in(1,:)/2- PSD_in(end,:)/2 ;
+            % no frequency
+            % e_psd = sum( PSD_in , 1 ) - PSD_in(1,:)/2- PSD_in(end,:)/2 ;
+            % accounting for frequency integration
+            
+            N       = (2*size(PSD_in,1)-2);
+            df      = (obj.Fs)/N ;
+            %e_psd   = df*( sum( PSD_in,1) ) ;
+            e_psd   = df*( sum( PSD_in , 1 ) - PSD_in(1,:)/2 - PSD_in(end,:)/2 ) ;
             
         end        
         
