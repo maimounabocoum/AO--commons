@@ -82,16 +82,14 @@ myFilter.DrawROI ;
 
 % inverse FFT
 FilteredFrame = F.ifourier( FrameFFT.*BW) ;
-FilteredFrame = 2*abs(FilteredFrame).^2./(Frame_ref);
+
 % total sum in power
-P_tot = sum( abs(FilteredFrame(:))*MyXimea.dpixel*MyXimea.dpixel );
+P_tot = sum( abs(Frame(:))*MyXimea.dpixel*MyXimea.dpixel );
 
 figure(2)
-subplot(122)
-imagesc(F.x*1e3,F.z*1e3,100*FilteredFrame)
+subplot(212)
+imagesc(F.x*1e3,F.z*1e3,4*abs(FilteredFrame).^2./Frame_ref.^2)
 cb = colorbar ;
-%caxis([0 1])
-%caxis([15 115])
 xlabel('mm')
 ylabel('mm')
 ylabel(cb,'Intensity in \mu W /cm^2')

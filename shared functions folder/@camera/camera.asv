@@ -3,11 +3,8 @@ classdef camera
     %   Detailed explanation goes here
     
     properties
-        
-        % constant parameters
         FPS
         QE
-        FWC % Full Well Capacity
         AD
         Idark
         ReadNoise
@@ -17,13 +14,6 @@ classdef camera
         dpixel
         x_cam
         y_cam
-        
-        % current frame
-        wavelength
-        IntegrationTime
-        format
-        frame
-        frame_bg
     end
     
     methods
@@ -44,38 +34,21 @@ classdef camera
             
                 case 'xiB-64'
             % sensor : LUX160
-            % product ref : CB160MG-LX-X8G3-EF
+            % 
             obj.FPS = 300;
             obj.AD = 9.77 ; 
-            obj.FWC = 1e4;          % electrons
             obj.Idark = 1e4 ;       % electron/px/s
             obj.ReadNoise = 10 ;    % electrons
             obj.bit = 10 ;
             obj.Nx_cam = 4704;
             obj.Ny_cam = 3424;    
-            obj.dpixel = 3.9e-6;   % pixels dimension in m
-            obj.QE = 0.35;
+            obj.dpixel = 3.9e-6;
+            obj.QE = 0.2;
             obj.x_cam = 1:(obj.Nx_cam);
             obj.y_cam = 1:(obj.Ny_cam);
             end
         end
         
-        function obj = ConvertFrame2electrons(obj)
-            obj.frame = (obj.frame)*( obj.FWC /(2^(obj.format)-1) ) ;
-        end
-        
-        function obj = ConvertFrame2photons(obj)
-            Electrons = (obj.frame)*( obj.FWC /2^(obj.format) ) ;
-            obj.frame = Electrons/(obj.QE) ;
-        end
-        
-        function obj = ConvertFrame2Intensity(obj)
-            Electrons = (obj.frame)*( obj.FWC /(2^(obj.format)-1) ) ;
-            Photons = Electrons/(obj.QE) ;
-            h = 6.6260e-34; % m^2 kg / s
-            Ephoton = h*(3e8/obj.wavelength) ; % J
-            obj.frame = (Ephoton*Photons)/(obj.IntegrationTime*obj.dpixel*obj.dpixel) ; % W /m^2
-        end
 
     end
 end
