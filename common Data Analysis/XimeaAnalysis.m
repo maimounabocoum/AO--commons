@@ -27,8 +27,8 @@ MyXimea.wavelength = 780e-9;
 MyXimea.IntegrationTime = 100e-6;
 
 % get intensity and total power
-[Frame,P_tot] = GetIntensity( IM , BG , MyXimea );
-[Frame_ref,P_tot_ref] = GetIntensity( REF , BG , MyXimea );
+[Frame,P_tot]           = GetIntensity( IM , BG , MyXimea );
+[Frame_ref,P_tot_ref]   = GetIntensity( REF , BG , MyXimea );
 [Frame_main,P_tot_main] = GetIntensity( MAIN , BG , MyXimea );
 
 figure(1)
@@ -57,17 +57,16 @@ title(['Total Power is ',num2str(1e6*P_tot_main),'\mu W'])
 
 
 %% Definition of Fourier transform
+
 F = TF2D( 2^10 , 2^10 , 1/(MyXimea.dpixel) , 1/(MyXimea.dpixel) );
-
-
 FrameFFT = F.fourier( Frame );
 
 % define filter in pixel
-myFilter = ImageFilter( [610 700 450 600] );
-BW = myFilter.getROI(2^10,2^10);
+% myFilter = ImageFilter( [610 700 450 600] );
+myFilter = ImageFilter( [470 560 470 560] );
+BW       = myFilter.getROI(2^10,2^10);
 
 figure(2)
-subplot(121)
 %imagesc( 1e3*MyXimea.x_cam*MyXimea.dpixel , 1e3*MyXimea.x_cam*MyXimea.dpixel ,log(abs(FrameFFT)) )
 imagesc(log(abs(FrameFFT)))
 cb = colorbar ;
@@ -75,22 +74,21 @@ xlabel('mm')
 ylabel('mm')
 ylabel(cb,'Intensity in \mu W /cm^2')
 title(['Total Power is ',num2str(1e6*P_tot),'\mu W'])
+axis equal
 
 % plot ROI (imagesc should be in pixels) in gcf
 myFilter.DrawROI ;
 
-
+%%
 % inverse FFT
 FilteredFrame = F.ifourier( FrameFFT.*BW) ;
-FilteredFrame = 2*abs(FilteredFrame).^2./(Frame_ref);
+FilteredFrame = 2*abs(FilteredFrame).^2./(Frame_ref) ;
 % total sum in power
 P_tot = sum( abs(FilteredFrame(:))*MyXimea.dpixel*MyXimea.dpixel );
 
-figure(2)
-subplot(122)
-imagesc(F.x*1e3,F.z*1e3,100*FilteredFrame)
+figure(3)
+imagesc( F.x*1e3 , F.z*1e3 , 100*FilteredFrame )
 cb = colorbar ;
-%caxis([0 1])
 %caxis([15 115])
 xlabel('mm')
 ylabel('mm')

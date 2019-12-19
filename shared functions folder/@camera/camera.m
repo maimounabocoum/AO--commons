@@ -64,6 +64,13 @@ classdef camera
             obj.frame = (obj.frame)*( obj.FWC /(2^(obj.format)-1) ) ;
         end
         
+        function SIG = GetShotNoise(obj,mu)
+            h = 6.6260e-34; % m^2 kg / s
+            Ephoton = h*(3e8/obj.wavelength) ; % J
+            alpha = (Ephoton)/(obj.IntegrationTime); %W
+            SIG = sqrt(alpha)*sqrt(mu);
+        end
+        
         function obj = ConvertFrame2photons(obj)
             Electrons = (obj.frame)*( obj.FWC /2^(obj.format) ) ;
             obj.frame = Electrons/(obj.QE) ;

@@ -21,7 +21,7 @@ lambda=765;
 Youngmodulus=60;
 mu_sprime= 10;
 mu_a=0;
-massGel=5*5*5;
+massGel=5*5*10;
 
 
 
@@ -51,6 +51,7 @@ else
     massIntralipid
     massInkSolution
     massWater
+    
 end
 
 return

@@ -8,24 +8,28 @@ classdef ImageFilter
     
     methods
         function obj = ImageFilter(points)
-            %UNTITLED2 Construct an instance of this class
-            %   Detailed explanation goes here
+            % [centerX,centerZ,WidthX,LengthZ]
             obj.Coord = points ;
         end
         
         function H = getROI(obj,Nx,Ny)
 
-            H = ones(2^10,2^10);
-            BOX = obj.Coord ;
-            H( : ,1:Nx > BOX(2) )  = 0;
-            H( :,1:Nx < BOX(1)  )  = 0;
-            H( 1:Ny > BOX(4) , : ) = 0;
-            H( 1:Ny < BOX(3), :  ) = 0;
+            H = ones(Ny,Nx);
+            
+                  
+            H( : ,1:Nx > obj.Coord(1) + obj.Coord(3)/2 )  = 0;
+            H( :,1:Nx < obj.Coord(1) - obj.Coord(3)/2 )  = 0;
+            H( 1:Ny > obj.Coord(2) + obj.Coord(4)/2 , : ) = 0;
+            H( 1:Ny < obj.Coord(2) - obj.Coord(4)/2, :  ) = 0;
 
         end
         
         function [] = DrawROI(obj)
-            rectangle('Position',[obj.Coord(1),obj.Coord(3),obj.Coord(2)-obj.Coord(1)+0.5,obj.Coord(4)-obj.Coord(3)+0.5])
+            BOX = [obj.Coord(1) - obj.Coord(3)/2,...
+                   obj.Coord(1) + obj.Coord(3)/2,...
+                   obj.Coord(2) - obj.Coord(4)/2,...
+                   obj.Coord(2) + obj.Coord(4)/2 ];
+            rectangle('Position',[BOX(1)-0.5,BOX(3)-0.5,BOX(2)-BOX(1)+0.5,BOX(4)- BOX(3)+0.5])
         end
     end
 end
