@@ -2,8 +2,8 @@ function [frame,P_tot] = GetIntensity( IM , BG , MyXimea )
 
 
 %% define of camera buffer used for analysis:
-MyXimea.frame = IM( 1200 + (1:2^10) , 1700 + (1:2^10) );
-MyXimea.frame_bg = BG( 1200 + (1:2^10) , 1700 + (1:2^10) );
+MyXimea.frame = IM;%( 1200 + (1:2^10) , 1700 + (1:2^10) );
+MyXimea.frame_bg = BG;%( 1200 + (1:2^10) , 1700 + (1:2^10) );
 
 
 % remove BG

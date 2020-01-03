@@ -3,9 +3,12 @@
 %% add relative path to current path
 
 addpath('..\shared functions folder');
+addpath('..\read and write files');
 
 %% load data and initialize classes
 clearvars
+
+%% import LogFile
 
 %% load sequence
 [Filename,Foldername] = uigetfile('*.tiff','MultiSelect','on');
@@ -17,15 +20,16 @@ end
 %% load images of interest
 
 %REF = double( importdata('Q:\datas\2019-12-10\EXP100\Ref_OnlyP40uW_nofiler.tif') );
-BG = double( importdata('Q:\datas\2019-12-10\EXP100\BG_EXP100us.tif') );
-MAIN = double( importdata('Q:\datas\2019-12-10\EXP100\Main_OnlyP9uW_EXP100us.tif') );
-REF = double( importdata('Q:\datas\2019-12-10\EXP100\Ref_OnlyP40uW_EXP100us.tif') );
+BG      = double( importdata('D:\Data\Mai\2020-01-03\BG_51211.tiff') );
+MAIN    = double( importdata('D:\Data\Mai\2020-01-03\MAIN_51719.tiff') );
+REF     = double( importdata('D:\Data\Mai\2020-01-03\ref_51473.tiff') );
 
 %% define a camera
 MyXimea = camera('xiB-64')    ;
 MyXimea.format = 8;
 MyXimea.wavelength = 780e-9;
 MyXimea.IntegrationTime = 100e-6;
+MyXimea = MyXimea.ResizePixels(1024,1024);
 
 %% set references need for deconvolution
 [Frame_ref,P_tot_ref] = GetIntensity( REF , BG , MyXimea );
@@ -36,7 +40,7 @@ MyXimea.IntegrationTime = 100e-6;
 N   = 2^10;
 F = TF2D( N , N , 1/(MyXimea.dpixel) , 1/(MyXimea.dpixel) );
 %% define filter for FFT in pixel
-myFilter = ImageFilter( [653 531 95 95]  );
+myFilter = ImageFilter( [410 720 120 120] );
 %myFilter = ImageFilter( [470 560 470 560] ); % center
 BW = myFilter.getROI(N,N);
 
@@ -62,7 +66,7 @@ for loop = 1:Nfiles
     % filter out tagged photons
     FrameFFT      = F.fourier( Frame );
     FilteredFrame = F.ifourier( FrameFFT.*BW) ;
-    FilteredFrame = 2*abs(FilteredFrame).^2./(Frame_ref);
+    FilteredFrame = 2*abs(FilteredFrame).^2; %./(Frame_ref);
     
     % evaluation of total power
     temp = Frame;
@@ -73,8 +77,15 @@ for loop = 1:Nfiles
     MU  = MU  + temp/Nfiles; % iterative average
     MU2 = MU2 + temp.^2/Nfiles; % iterative variance
     
-    
+figure(3)
+imagesc( F.x*1e3 , F.z*1e3 , 100*FilteredFrame )
+cb = colorbar ;
+xlabel('mm')
+ylabel('mm')
+ylabel(cb,'Intensity in \mu W /cm^2')
+title(['Total Power is ',num2str(1e6*P_tot),'\mu W'])
     % ImageCorr(loop) = corr2(Frame,Frame0)    ;
+    drawnow
 end
 
 %% plot result
