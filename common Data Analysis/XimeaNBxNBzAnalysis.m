@@ -10,6 +10,8 @@ clearvars
 
 %% import LogFile
 [NB,nuX0,nuZ0] = ReadLogFile('');
+G = TF2D( 2^5 , 2^5 , (2^5-1)*nuX0 , (2^5-1)*nuZ0 );
+ObjectFFT = zeros(2^5 , 2^5);
 
 %% load sequence
 [Filename,Foldername] = uigetfile('*.tiff','MultiSelect','on');
@@ -33,7 +35,7 @@ MyXimea.IntegrationTime = 100e-6;
 MyXimea = MyXimea.ResizePixels(1024,1024);
 
 %% set references need for deconvolution
-[Frame_ref,P_tot_ref] = GetIntensity( REF , BG , MyXimea );
+[Frame_ref,P_tot_ref]   = GetIntensity( REF , BG , MyXimea );
 [Frame_main,P_tot_main] = GetIntensity( MAIN , BG , MyXimea );
 
 
@@ -47,11 +49,8 @@ BW = myFilter.getROI(N,N);
 
 %% -------------- begin loop 
 IndexRecord0 = ExtractIndex(Filename{1});
-MU  = zeros(N,N);
-MU2 = zeros(N,N);
-P_tot = zeros(1,Nfiles);
-mu  =  0;
-mu2 = 0;
+IM_rec  = zeros(N,N);
+
 ImageCorr = zeros(1,Nfiles);
 
 figure(3)
@@ -70,63 +69,49 @@ for loop = 1:Nfiles
     % filter out tagged photons
     FrameFFT      = F.fourier( Frame );
     FilteredFrame = F.ifourier( FrameFFT.*BW) ;
-    FilteredFrame = 2*abs(FilteredFrame).^2./(Frame_ref);
+    FilteredFrame = 2*abs(FilteredFrame).^2;%./(Frame_ref);
     FilteredFrame(abs(FilteredFrame) > 10 ) = 0 ;
     FilteredFrame(800:end,:)=0;
     % evaluation of total power
     temp = FilteredFrame;
     P_tot(loop) = sum( abs(temp(:))*MyXimea.dpixel*MyXimea.dpixel );
-
-    mu  = mu  + P_tot(loop)/Nfiles;
-    mu2 = mu2 + P_tot(loop)^2/Nfiles;
-    MU  = MU  + temp/Nfiles;    % iterative average
-    MU2 = MU2 + temp.^2/Nfiles; % iterative variance
     
 
-imagesc( F.x*1e3 , F.z*1e3 , 100*FilteredFrame )
-cb = colorbar ;
-xlabel('mm')
-ylabel('mm')
-ylabel(cb,'Intensity in \mu W /cm^2')
-title(['P_{tot}',num2str(1e6*P_tot(loop)),'\mu W , (NBx,NBz)=(',num2str(NB(mod(IndexRecord,280)+1,2)),',',num2str(NB(mod(IndexRecord,280)+1,3)),')'])
-% ImageCorr(loop) = corr2(Frame,Frame0)    ;
-drawnow
+    
+    % indirect reconstruction
+    Nbx = NB(mod(IndexRecord,280)+1,2) ;
+    Nbz = NB(mod(IndexRecord,280)+1,3) ;
+    PHASE= NB(mod(IndexRecord,280)+1,4);
+    
+    DecalZ  =   0.3; % ??
+    s = exp(2i*pi*DecalZ*Nbz);
+    ObjectFFT((2^4+1)+Nbz,(2^4+1)+Nbx) = s*exp(1i*2*pi*PHASE)*P_tot(loop);
+    ObjectFFT((2^4+1)-Nbz,(2^4+1)-Nbx) = conj( ObjectFFT((2^4+1)+Nbz,(2^4+1)+Nbx));
+
+    % direct reconstruction
+    %IM_rec = IM_rec + exp(1i*2*pi*PHASE)*FilteredFrame;
+    
+    
+%imagesc( F.x*1e3 , F.z*1e3 , 100*FilteredFrame )
+% imagesc( F.x*1e3 , F.z*1e3 , real(IM_rec) )
+% cb = colorbar ;
+% xlabel('mm')
+% ylabel('mm')
+% ylabel(cb,'Intensity in \mu W /cm^2')
+% title(['P_{tot}',num2str(1e6*P_tot(loop)),'\mu W , (NBx,NBz)=(',num2str(Nbx),',',num2str(Nbz),')'])
+% % ImageCorr(loop) = corr2(Frame,Frame0)    ;
+% drawnow
 end
 
+%%
+
+%Reconstruct = G.ifourier( ObjectFFT );
+I = ifft2(fftshift(ObjectFFT));
+I = I - ones(2^5,1)*I(1,:);
+I = ifftshift(I,2);
+figure;imagesc(I)
 
 
-%% plot result
-sigma = sqrt( mu2 - mu^2 );
-sigma_sn = MyXimea.GetShotNoise(mu);
-SIGMA = sqrt( MU2 - MU.^2 );
-    figure(1)
-    imagesc( 1e3*MyXimea.x_cam*MyXimea.dpixel , 1e3*MyXimea.x_cam*MyXimea.dpixel , 100*MU)
-    cb = colorbar ;
-    xlabel('mm')
-    ylabel('mm')
-    ylabel(cb,'Intensity in \mu W /cm^2')
-    title(['\mu =',num2str(1e6*mu),'\mu W ; \sigma_{sn} = ',num2str(num2str(1e6*sigma_sn)),'\mu W'])
-    drawnow
-    figure(2)
-    imagesc( 1e3*MyXimea.x_cam*MyXimea.dpixel , 1e3*MyXimea.x_cam*MyXimea.dpixel , 100*SIGMA)
-    cb = colorbar ;
-    xlabel('mm')
-    ylabel('mm')
-    ylabel(cb,'Intensity in \mu W /cm^2')
-    title(['\sigma = ',num2str(num2str(1e6*sigma)),'\mu W'])
-    drawnow
-    
-%     %% plot results
-%     Ptot = [0.0056421, 0.025105, 0.15004,0.71961,3.5872,13.5005];
-%     Sigma = [9.3106e-5,0.00070026,0.0023577,0.017529,0.091051,0.23117];
-%     Sigma_sn = [3.7919e-6,7.9987e-6,1.9554e-5,4.2824e-5,9.5613e-5,0.00018549];
-%     
-    
-%     figure;
-%     hold on
-%     plot(Ptot,100*Sigma./Ptot);
-  %  hold on
-  %  semilogx(Ptot- Ptot(1),(Ptot- Ptot(1))./Sigma);
-    
-    
+
+
     
