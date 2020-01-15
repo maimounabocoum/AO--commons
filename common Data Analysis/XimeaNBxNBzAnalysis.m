@@ -23,7 +23,7 @@ end
 
 %REF = double( importdata('Q:\datas\2019-12-10\EXP100\Ref_OnlyP40uW_nofiler.tif') );
 BG      = double( importdata('D:\Data\Mai\2020-01-13\NbXNbZ\GB\BG_48524.tiff') );
-MAIN    = double( importdata('D:\Data\Mai\2020-01-13\MAIN\main_6844.tiff') );
+MAIN    = double( importdata('D:\Data\Mai\2020-01-14\MAIN\MAIN_15181.tiff') );
 REF     = double( importdata('D:\Data\Mai\2020-01-13\REF\ref_12911.tiff') );
 
 % figure;imagesc(BG);title('background');cb = colorbar;ylabel(cb,'counts');
@@ -62,7 +62,7 @@ G = TF2D( 2^5 , 2^5 , (2^5-1)*nuX0 , (2^5-1)*nuZ0 );
 ObjectFFT = zeros(2^5 , 2^5);
 
 
-for loop = 125:128%:Nfiles
+for loop = 1:Nfiles
     
 %     if loop == 1
 %     IM = double( importdata([Foldername,Filename{1}]) );
@@ -89,9 +89,9 @@ for loop = 125:128%:Nfiles
     
     % indirect reconstruction
     
-    Nbx = NB(mod(IndexRecord,Nfiles)+1,2) 
-    Nbz = NB(mod(IndexRecord,Nfiles)+1,3) 
-    PHASE= NB(mod(IndexRecord,Nfiles)+1,4)
+    Nbx = NB(mod(IndexRecord,Nfiles)+1,2) ;
+    Nbz = NB(mod(IndexRecord,Nfiles)+1,3) ;
+    PHASE= NB(mod(IndexRecord,Nfiles)+1,4)+pi/2;
     
     DecalZ  =   0.3;
     s = exp(2i*pi*DecalZ*Nbz);
@@ -100,33 +100,36 @@ for loop = 125:128%:Nfiles
 
     % direct reconstruction
     IM_rec = IM_rec + exp(1i*2*pi*PHASE)*FilteredFrame;
-    
-    figure
-imagesc( F.x*1e3 , F.z*1e3 , 100*FilteredFrame )
-cb = colorbar ;
-xlabel('mm')
-ylabel('mm')
-ylabel(cb,'Intensity in \mu W /cm^2')
-title(['P_{tot}',num2str(1e6*P_tot(loop)),'\mu W , (NBx,NBz,phase)=(',num2str(Nbx),',',num2str(Nbz),',',num2str(PHASE),')'])
-% ImageCorr(loop) = corr2(Frame,Frame0)    ;
-% subplot(122)    
-% FilteredFrame_fft = F.fourier(FilteredFrame);
-% %FilteredFrame_fft(512:514,512:514)= 0;
-% imagesc( F.fx*1e3 , F.fz*1e3 , UnwrapPHASE(angle(FilteredFrame_fft),512,512))
-% colorbar
-% axis([-1 1 -1 1]*0.5e7)
-% caxis([-30 30])
-drawnow
-saveas(gcf,['D:\Data\Mai\2020-01-13\4-phase\',Filename{loop}],'png');
+%     
+%     figure
+% imagesc( F.x*1e3 , F.z*1e3 , 100*FilteredFrame )
+% cb = colorbar ;
+% xlabel('mm')
+% ylabel('mm')
+% ylabel(cb,'Intensity in \mu W /cm^2')
+% title(['P_{tot}',num2str(1e6*P_tot(loop)),'\mu W , (NBx,NBz,phase)=(',num2str(Nbx),',',num2str(Nbz),',',num2str(PHASE),')'])
+% % ImageCorr(loop) = corr2(Frame,Frame0)    ;
+% % subplot(122)    
+% % FilteredFrame_fft = F.fourier(FilteredFrame);
+% % %FilteredFrame_fft(512:514,512:514)= 0;
+% % imagesc( F.fx*1e3 , F.fz*1e3 , UnwrapPHASE(angle(FilteredFrame_fft),512,512))
+% % colorbar
+% % axis([-1 1 -1 1]*0.5e7)
+% % caxis([-30 30])
+% drawnow
+% saveas(gcf,['D:\Data\Mai\2020-01-13\4-phase\',Filename{loop}],'png');
 end
 
 
-figure
-subplot(121); imagesc(real(IM_rec)); colorbar ;
-title(['Real : (NBx,NBz)=(',num2str(Nbx),',',num2str(Nbz),')'])
-subplot(122); imagesc(imag(IM_rec)); colorbar ;
-title(['Imag : (NBx,NBz)=(',num2str(Nbx),',',num2str(Nbz),')'])
-
+% figure(2)
+% subplot(131); imagesc(real(IM_rec(100:750,100:800))); colorbar ;
+% title(['Real : (NBx,NBz)=(',num2str(Nbx),',',num2str(Nbz),')'])
+% subplot(132); imagesc(imag(IM_rec(100:750,100:800))); colorbar ;
+% title(['Imag : (NBx,NBz)=(',num2str(Nbx),',',num2str(Nbz),')'])
+% subplot(133); imagesc(abs(IM_rec(100:750,100:800))); colorbar ;
+% caxis([0 7e-3])
+% title(['Real : (NBx,NBz)=(',num2str(Nbx),',',num2str(Nbz),')'])
+% saveas(gcf,['D:\Data\Mai\2020-01-14\data analysis\Imag(NBx,NBz)(',num2str(Nbx),',',num2str(Nbz),')'],'png');
 
 %% interpolation of main object onto this grid:
 MAIN_FFT = F.fourier(MAIN);
@@ -148,19 +151,23 @@ figure(5);imagesc(cal*F.x*1e3,cal*F.z*1e3,MAIN_filtered)
 
 %% loop to get fourier componant:
 Nfft = 2^10;
+
 G = TF2D( Nfft , Nfft , (Nfft-1)*nuX0 , (Nfft-1)*nuZ0 );
 ObjectFFT = zeros(Nfft , Nfft);
 
 for loop = 1:length(P_tot)
     Nbx     = NB(loop,2) ;
     Nbz     = NB(loop,3) ;
-    PHASE   = 0;%NB(loop,4)^(1/70)
+    PHASE   = NB(loop,4);
     
-    DecalZ  =   -0.01; % ??
-    DecalX  =   0.5; % ??
-    s = exp(2i*pi*DecalZ*Nbz);
+    DecalZ  =   -0.2; % ??
+    chirpZ  =   0.3;
+    DecalX  =   -0.2; % ??
+    s = exp(2i*pi*(DecalZ*Nbz + chirpZ*Nbz.^2 + DecalX*Nbx));
+   
     ObjectFFT((Nfft/2+1)+Nbz,(Nfft/2+1)+Nbx) = ObjectFFT((Nfft/2+1)+Nbz,(Nfft/2+1)+Nbx) + s*exp(1i*2*pi*PHASE)*P_tot(loop);
     ObjectFFT((Nfft/2+1)-Nbz,(Nfft/2+1)-Nbx) = conj( ObjectFFT((Nfft/2+1)+Nbz,(Nfft/2+1)+Nbx) );   
+
 end
 
 % figure;imagesc(G.fx/G.dfx,G.fz/G.dfz,abs(ObjectFFT)), colorbar;
@@ -177,7 +184,7 @@ Reconstruct = G.ifourier( ObjectFFT );
 % % I = ifft2(ifftshift(ObjectFFT));
 % % I = I - ones(2^5,1)*I(1,:);
 % % I = ifftshift(I,2);
-figure;imagesc(G.x*1e3,G.z*1e3,Reconstruct)
+figure(1);imagesc(G.x*1e3,G.z*1e3,real(Reconstruct))
 title('reconstructed object')
 xlabel('mm')
 ylabel('mm')

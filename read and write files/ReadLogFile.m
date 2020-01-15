@@ -5,7 +5,7 @@ function [NB,nuX0,nuZ0] = ReadLogFile(path)
 % gets todays path:
 
 % SubFolderName  = generateSubFolderName('D:\Data\Mai');
-SubFolderName = 'D:\Data\Mai\2020-01-13\NbXNbZ';
+SubFolderName = 'D:\Data\Mai\2020-01-14\NbXNbZ';
 LogFile = importdata([SubFolderName,'\LogFile.csv']);
 
 TypeOfSequence      = LogFile.colheaders{:,1};
