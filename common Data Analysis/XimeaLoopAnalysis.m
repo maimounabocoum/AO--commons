@@ -3,9 +3,13 @@
 %% add relative path to current path
 
 addpath('..\shared functions folder');
+addpath('..\read and write files');
 
 %% load data and initialize classes
 clearvars
+
+%% import LogFile
+[NB,nuX0,nuZ0] = ReadLogFile('');
 
 %% load sequence
 [Filename,Foldername] = uigetfile('*.tiff','MultiSelect','on');
@@ -17,15 +21,16 @@ end
 %% load images of interest
 
 %REF = double( importdata('Q:\datas\2019-12-10\EXP100\Ref_OnlyP40uW_nofiler.tif') );
-BG = double( importdata('Q:\datas\2019-12-10\EXP100\BG_EXP100us.tif') );
-MAIN = double( importdata('Q:\datas\2019-12-10\EXP100\Main_OnlyP9uW_EXP100us.tif') );
-REF = double( importdata('Q:\datas\2019-12-10\EXP100\Ref_OnlyP40uW_EXP100us.tif') );
+BG      = double( importdata('D:\Data\Mai\2020-01-03\buffer\BG\BG_51211.tiff') );
+MAIN    = double( importdata('D:\Data\Mai\2020-01-03\buffer\MAIN\MAIN_51719.tiff') );
+REF     = double( importdata('D:\Data\Mai\2020-01-03\buffer\REF\ref_51473.tiff') );
 
 %% define a camera
 MyXimea = camera('xiB-64')    ;
 MyXimea.format = 8;
 MyXimea.wavelength = 780e-9;
 MyXimea.IntegrationTime = 100e-6;
+MyXimea = MyXimea.ResizePixels(1024,1024);
 
 %% set references need for deconvolution
 [Frame_ref,P_tot_ref] = GetIntensity( REF , BG , MyXimea );
@@ -36,11 +41,12 @@ MyXimea.IntegrationTime = 100e-6;
 N   = 2^10;
 F = TF2D( N , N , 1/(MyXimea.dpixel) , 1/(MyXimea.dpixel) );
 %% define filter for FFT in pixel
-myFilter = ImageFilter( [653 531 95 95]  );
+myFilter = ImageFilter( [410 720 120 120] );
 %myFilter = ImageFilter( [470 560 470 560] ); % center
 BW = myFilter.getROI(N,N);
 
 %% -------------- begin loop 
+IndexRecord0 = ExtractIndex(Filename{1});
 MU  = zeros(N,N);
 MU2 = zeros(N,N);
 P_tot = zeros(1,Nfiles);
@@ -48,6 +54,7 @@ mu  =  0;
 mu2 = 0;
 ImageCorr = zeros(1,Nfiles);
 
+figure(3)
 for loop = 1:Nfiles
     
 %     if loop == 1
@@ -56,6 +63,7 @@ for loop = 1:Nfiles
 %     end
     
     IM = double( importdata([Foldername,Filename{loop}]) );
+    IndexRecord = ExtractIndex(Filename{loop}) - IndexRecord0 ;
     [Frame,P_frame] = GetIntensity( IM , BG , MyXimea );
     
     
@@ -63,19 +71,29 @@ for loop = 1:Nfiles
     FrameFFT      = F.fourier( Frame );
     FilteredFrame = F.ifourier( FrameFFT.*BW) ;
     FilteredFrame = 2*abs(FilteredFrame).^2./(Frame_ref);
-    
+    FilteredFrame(abs(FilteredFrame) > 10 ) = 0 ;
+    FilteredFrame(800:end,:)=0;
     % evaluation of total power
-    temp = Frame;
+    temp = FilteredFrame;
     P_tot(loop) = sum( abs(temp(:))*MyXimea.dpixel*MyXimea.dpixel );
 
     mu  = mu  + P_tot(loop)/Nfiles;
     mu2 = mu2 + P_tot(loop)^2/Nfiles;
-    MU  = MU  + temp/Nfiles; % iterative average
+    MU  = MU  + temp/Nfiles;    % iterative average
     MU2 = MU2 + temp.^2/Nfiles; % iterative variance
     
-    
-    % ImageCorr(loop) = corr2(Frame,Frame0)    ;
+
+imagesc( F.x*1e3 , F.z*1e3 , 100*FilteredFrame )
+cb = colorbar ;
+xlabel('mm')
+ylabel('mm')
+ylabel(cb,'Intensity in \mu W /cm^2')
+title(['P_{tot}',num2str(1e6*P_tot(loop)),'\mu W , (NBx,NBz)=(',num2str(NB(mod(IndexRecord,280)+1,2)),',',num2str(NB(mod(IndexRecord,280)+1,3)),')'])
+% ImageCorr(loop) = corr2(Frame,Frame0)    ;
+drawnow
 end
+
+
 
 %% plot result
 sigma = sqrt( mu2 - mu^2 );

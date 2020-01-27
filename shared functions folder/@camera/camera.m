@@ -60,6 +60,11 @@ classdef camera
             end
         end
         
+        function obj = ResizePixels(obj,Nx,Ny)
+           obj.Nx_cam = Nx;
+            obj.Ny_cam = Ny;    
+        end
+        
         function obj = ConvertFrame2electrons(obj)
             obj.frame = (obj.frame)*( obj.FWC /(2^(obj.format)-1) ) ;
         end

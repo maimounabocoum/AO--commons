@@ -1,7 +1,7 @@
 %% gage loop analysis
 %clearvars
 %load('Q:\datas\2019-12-10\Ref_100Hz_41uW_filter_main2uW_RepHz_100_16h27_53.mat');
-load('Q:\datas\2019-12-10\Ref_100Hz_41uW_filter_main0uW_RepHz_100_16h51_20');
+load('D:\Data\Mai\2020-01-13\gage');
 %% =============== add subfolders ===============  %%
 
 %  addpath('Q:\AO--commons\Plottings')

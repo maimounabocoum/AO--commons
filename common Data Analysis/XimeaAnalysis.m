@@ -7,24 +7,24 @@ clearvars
 
 %% load sequence
 [Filename,Foldername] = uigetfile('*.tiff','MultiSelect','on');
-Nfiles = length(Filename);
-if Nfiles==1
+if iscell(Filename)==0
    Filename = {Filename};
 end
-
+Nfiles = length(Filename);
 %% load images of interest
 
 %REF = double( importdata('Q:\datas\2019-12-10\EXP100\Ref_OnlyP40uW_nofiler.tif') );
-IM = double( importdata([Foldername,Filename{1}]) );
-BG = double( importdata('Q:\datas\2019-12-10\EXP100\BG_EXP100us.tif') );
-MAIN = double( importdata('Q:\datas\2019-12-10\EXP100\Main_OnlyP2uW_EXP100us.tif') );
-REF = double( importdata('Q:\datas\2019-12-10\EXP100\Ref_OnlyP40uW_EXP100us.tif') );
+IM = double( importdata([Foldername,Filename{2}]) );
+BG = double( importdata('D:\Data\Mai\2020-01-03\BG_51211.tiff') );
+MAIN = double( importdata('D:\Data\Mai\2020-01-03\MAIN_51719.tiff') );
+REF = double( importdata('D:\Data\Mai\2020-01-03\ref_51473.tiff') );
 
 %% define a camera
 MyXimea = camera('xiB-64')    ;
 MyXimea.format = 8;
 MyXimea.wavelength = 780e-9;
 MyXimea.IntegrationTime = 100e-6;
+MyXimea = MyXimea.ResizePixels(1024,1024);
 
 % get intensity and total power
 [Frame,P_tot]           = GetIntensity( IM , BG , MyXimea );
@@ -63,7 +63,7 @@ FrameFFT = F.fourier( Frame );
 
 % define filter in pixel
 % myFilter = ImageFilter( [610 700 450 600] );
-myFilter = ImageFilter( [470 560 470 560] );
+myFilter = ImageFilter( [410 720 120 120] );
 BW       = myFilter.getROI(2^10,2^10);
 
 figure(2)
@@ -82,7 +82,7 @@ myFilter.DrawROI ;
 %%
 % inverse FFT
 FilteredFrame = F.ifourier( FrameFFT.*BW) ;
-FilteredFrame = 2*abs(FilteredFrame).^2./(Frame_ref) ;
+FilteredFrame = 2*abs(FilteredFrame).^2;%./(Frame_ref) ;
 % total sum in power
 P_tot = sum( abs(FilteredFrame(:))*MyXimea.dpixel*MyXimea.dpixel );
 
