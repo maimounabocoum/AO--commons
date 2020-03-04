@@ -1,6 +1,7 @@
 function Ireconstruct = Retroprojection_shared(I,X_m,z_out,theta, M0 ,H )
 % function created by maimouna bocoum 13/09/2017
 
+
 z_out = z_out(:)';
 
 size(I,1)
@@ -46,15 +47,16 @@ end
        ylabel('z (mm)')
        caxis( [ min(Ireconstruct(:)) , max(Ireconstruct(:)) ] )
        
-       saveas(gcf,['Q:\AO---softwares-and-developpement\radon inversion\gif folder/image',num2str(i),'.png'])
+       % saveas(gcf,['Q:\AO---softwares-and-developpement\radon inversion\gif folder/image',num2str(i),'.png'])
        drawnow 
 
   end
   
+    title(['Reconstructed phantom'])
 
     
     %title('Reconstruction')
-    ylabel(cb,'AC tension (mV)')
+    ylabel(cb,'tagged intensity (a.u)')
     colormap(parula)
     set(findall(H,'-property','FontSize'),'FontSize',15) 
 
