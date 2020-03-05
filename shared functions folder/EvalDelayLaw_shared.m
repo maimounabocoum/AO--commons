@@ -6,11 +6,12 @@ screenPlot = 0 ;
 
 % DelayLAWS : each column represents the delay law in s for all probe
 % elements. Note: non active elements are set to zero
+% For each measurement, the delay law is converted to distance
  for i = 1:size(DelayLAWS,2)
       ct(i,:) =    DelayLAWS(:,i)*c;
  end
  
- % ct = M0 M(t)
+% ct = M0 M(t)
 Nangle = size(ct , 1) ;
 
 % initialization:
@@ -28,20 +29,28 @@ if screenPlot == 1
 end
     
     for i = 1:Nangle     
+        
        % find index of minimum active element :
        Nmin = find(ActiveLIST(:,i) == 1, 1 );
        Nmax = find(ActiveLIST(:,i) == 1, 1, 'last' );
         
-
+       % evaluation of the angle in Rad using actual delay Law
        angle(i) = asin( (ct(i,Nmax)-ct(i,Nmin))/(X_m(Nmax) - X_m(Nmin)) );
+       
+       % definition of director vector in the direction of US propagation
        u = [sin(angle(i)),cos(angle(i))];
-       % definition ut vector :
-              % affichage des coordonnée initiales :
-       % (X_m,0) - ct*ut
+      
+       % Coordinate of wavefront at t=0 (fictive)
+       % (X_m,0) - ct*ut : probe initial position - retropropagation vector
+       
        X0 = X_m - u(1)*DelayLAWS(:,i)'*c ;
        Z0 = 0   - u(2)*DelayLAWS(:,i)'*c;
-       M0(i,1) = 0 - u(1)*DelayLAWS(1,i)'*c; 
+       
+       % image of point (0,0) at time t = 0.
+       % this allows to perfectly caracterize the rotation
+       M0(i,1) = 0   - u(1)*DelayLAWS(1,i)'*c; 
        M0(i,2) = 0   - u(2)*DelayLAWS(1,i)'*c;
+       
        if screenPlot == 1
        plot( X0*1e3 , Z0*1e3 ,'linewidth',3,'color',cc(i,:)) 
        hold on

@@ -41,7 +41,7 @@ classdef TF_t
             obj.t = (-N/2:1:N/2-1)*obj.dt;
             obj.T = (N-1)*obj.dt;
             obj.df = Fs/N ; % because it should match (N/2)df = Fs/2 according to Nyquist in DFT
-            obj.f = (-N/2:1:N/2-1)*obj.df;
+            obj.f = (-N/2:1:(N/2-1))*obj.df;
             obj.w = 2*pi*obj.f;
             obj.l(1:N/2)=-1540./obj.f(1:N/2); % wavelength
             obj.l(N/2+1)=1e15;   % non zero value at origin
