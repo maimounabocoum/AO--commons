@@ -1,8 +1,0 @@
-%% common analysis for Phorefractive experiement 
-clearvars;
-addpath('..\shared functions folder')
-
-% exemple OF datas
-load('Q:\datas\experimental datas\2019-07-23\2mm3mm_apresOpt_Foc_13_type_OF_15h02_24.mat');
-
-

@@ -3,11 +3,20 @@ clearvars;
 close all ;
 
 addpath('..\shared functions folder')
-
+load('Q:\datas\experimental datas\2017-10-17\AgarSL102_TypeOfSequence_JM_NbZ_8_NbZ_10_15h25_15.mat')
 %% data loaded
 % 2017-10-17 : JIONC presentation 
 
 %% data analysis
+
+
+% define main frequency ( older version of data )
+DurationWaveform = 20;
+Nbtot = 192;
+pitch = 0.2;
+nuZ0 = (1e6)/(c*DurationWaveform*1e3);       % Pas fréquence spatiale en Z (en mm-1)
+nuX0 = 1/(Nbtot*pitch);                      % Pas fréquence spatiale en X (en mm-1)
+
 
 % edit colormap
 D=[1 1 1;0 0 1;0 1 0;1 1 0;1 0 0;];
@@ -32,12 +41,12 @@ switch TypeOfSequence
     case 'JM'
     
         % inversion from FFT
-   pitch = 0.2;
+   
    [I,X,Z] = Reconstruct(NbX , NbZ, ...
                          NUX , NUZ ,...
                          x , z , ...
                          Datas - mean(mean(Datas(1:10,1:10))) , ...
-                         SampleRate , 20 , c , pitch);      
+                         SampleRate , DurationWaveform , c , nuX0 , nuZ0);      
         
     Hfinal = figure(1) ;
     imagesc(x,z, I)
