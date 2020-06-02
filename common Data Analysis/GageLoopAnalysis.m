@@ -1,21 +1,22 @@
 %% gage loop analysis
 %clearvars
 %load('Q:\datas\2019-12-10\Ref_100Hz_41uW_filter_main2uW_RepHz_100_16h27_53.mat');
-load('D:\Data\Mai\2020-01-13\gage');
+load('D:\Data\Mai\2020-03-06\6MHz-8 Volt\Water_Fus_6_Volt_8_18h22_47');
 %% =============== add subfolders ===============  %%
 
-%  addpath('Q:\AO--commons\Plottings')
+%  addpath('..\..\AO--commons\Plottings')
 %  addpath('..\..\AO--commons\shared functions folder')
 %  addpath('gui');
 %  addpath('sequences');
-%  addpath('subfunctions');
+%  addpath('..\..\AO--commonssubfunctions');
  
  %% =============== load datas ===============  %%
  
  % data : 13/11/2019:
  %load('Q:\datas\2019-12-10\Ref_100Hz_41uW_filter_main2uW_RepHz_100_16h27_53.mat')
- 
- 
+ % data : 06/03/2019:
+ %load('D:\Data\Mai\2020-03-06\6MHz-8 Volt\Water_Fus_6_Volt_8_18h22_47');
+
  %% =============== screen out datas ===============  %%
 
      h = 6.6e-34;
