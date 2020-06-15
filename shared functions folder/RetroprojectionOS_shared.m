@@ -1,4 +1,4 @@
-function Ireconstruct = RetroprojectionOS_shared(I,X_m,ActiveLIST,z_out,theta, M0 , X0 , Z0 , Kx, H )
+function Ireconstruct = RetroprojectionOS_shared(I, X_m, ActiveLIST, z_out, theta, M0 , X0 , Z0 , Kx, H )
 % function created by maimouna bocoum 13/09/2017
 
 L = max(X_m) - min(X_m) ;
