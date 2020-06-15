@@ -28,7 +28,7 @@ classdef OS < TF2D
             N = 2^10 ;
             Fmax_x = (N-1)*df0x;
             Fmax_z = 1/(ct(2)-ct(1)) ;
-            obj@TF2D(N,Fmax_x,Fmax_z);
+            obj@TF2D(N,N,Fmax_x,Fmax_z);
             
             if (size(InputImage,1) == length(ct) && size(InputImage,2) == length(theta))
             % checkin that dimension match the input image
@@ -172,11 +172,11 @@ classdef OS < TF2D
             decimation = unique(decimation);
             [Angles,ia,ib] = unique(theta) ;
             Ntheta = length(Angles);
-            I0 = obj.N/2 + 1 ;
+            I0 = obj.Nx/2 + 1 ;
             [X,Z] = meshgrid(obj.x + mean(obj.Lx),obj.z) ;
             
             % initialization of fourier matrix
-            Iout = zeros(obj.N,obj.N,Ntheta) ;
+            Iout = zeros(obj.Nz,obj.Nx,Ntheta) ;
             % center of rotation 
 
             
@@ -520,7 +520,7 @@ Fc      = 1/Lobject;  % Lobject is the size of the object to detect. Using simpl
 % filter options : 'ram-lak' (default) , 'cosine', 'hamming' , 'hann'
 FilterType = 'ram-lak';
 
-filt = FilterRadon(obj.fz, obj.N ,FilterType , Fc);
+filt = FilterRadon(obj.fz, obj.Nz ,FilterType , Fc);
 filt = filt(:);
 FILTER = filt*ones(1,Nf) ;
 

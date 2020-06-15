@@ -54,16 +54,6 @@ ylabel('mm')
 ylabel(cb,'Intensity in \mu W /cm^2')
 title(['Total Power is ',num2str(1e6*P_tot_main),'\mu W'])
 
-%%
-figure(3)
-F_test = Frame_main.*Frame_ref;
-imagesc( 1e3*MyXimea.x_cam*MyXimea.dpixel , 1e3*MyXimea.x_cam*MyXimea.dpixel , F_test)
-cb = colorbar ;
-P_tot_test = sum( F_test(:)*MyXimea.dpixel*MyXimea.dpixel );
-xlabel('mm')
-ylabel('mm')
-ylabel(cb,'Intensity in \mu W /cm^2')
-title(['Total Power is ',num2str(1e6*P_tot_test),'\mu W'])
 
 
 %% Definition of Fourier transform
@@ -74,7 +64,7 @@ FrameFFT = F.fourier( Frame );
 % define filter in pixel
 % myFilter = ImageFilter( [750 640 120 120] );
 % myFilter = ImageFilter( [745 680 120 120] );
-myFilter = ImageFilter( [790 535 165 115] );
+myFilter = ImageFilter( [802 530 120 120] );
 BW       = myFilter.getROI(2^10,2^10);
 
 figure(1)
@@ -101,13 +91,13 @@ IM = double( importdata([Foldername,Filename{loop}]) );
 [Frame,~]  = GetIntensity( IM , BG , MyXimea );
 FrameFFT = F.fourier( Frame );
 FilteredFrame = F.ifourier( FrameFFT.*BW ) ;
-FilteredFrame = abs(FilteredFrame).^2 ; %/(1.1+Frame_ref)
+FilteredFrame = 2*abs(FilteredFrame).^2./(1+Frame_ref) ;
 
 % total sum in power
 P_tot(loop) = sum( abs(FilteredFrame(:))*MyXimea.dpixel*MyXimea.dpixel );
 
 figure(2)
-imagesc( F.x*1e3 , F.z*1e3 , FilteredFrame )
+imagesc( F.x*1e3 , F.z*1e3 , 100*FilteredFrame )
 cb = colorbar ;
 %caxis([0 10])
 xlabel('mm')

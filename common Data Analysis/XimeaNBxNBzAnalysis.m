@@ -9,7 +9,7 @@ addpath('..\read and write files');
 clearvars
 
 %% import LogFile
-[NB,nuX0,nuZ0] = ReadLogFile('D:\Data\Mai\2020-01-31\image mire verticale sans PJ'); % loads LogFile
+[NB,nuX0,nuZ0] = ReadLogFile('D:\Data\Mai\2020-02-05\PJ NbX14'); % loads LogFile
 NB(1:4,:) = [];
 
 %% load sequence
@@ -21,11 +21,10 @@ end
 
 %% load images of interest
 
-%REF = double( importdata('Q:\datas\2019-12-10\EXP100\Ref_OnlyP40uW_nofiler.tif') );
-BG      = double( importdata('D:\Data\Mai\2020-01-31\BG 100us\BG_72446.tiff') );
-MAIN    = double( importdata('D:\Data\Mai\2020-01-31\Object mire verticale G -2 L 3\MireVerticalGm2L3_64398.tiff') );
-REF     = double( importdata('D:\Data\Mai\2020-01-31\REF only NbZ=10 no PJ\REFonly_76803.tiff') );
-
+IM = double( importdata([Foldername,Filename{2}]) );
+BG      = double( importdata('D:\Data\Mai\2020-02-05\BG\BG_50455.tiff') );
+MAIN    = double( importdata('D:\Data\Mai\2020-02-05\OBJ\OBJ_45268.tiff') );
+REF     = double( importdata('D:\Data\Mai\2020-02-05\REF\REF_48230.tiff') );
 % figure;imagesc(BG);title('background');cb = colorbar;ylabel(cb,'counts');
 % figure;imagesc(MAIN);title('main only');cb = colorbar;ylabel(cb,'counts');
 % figure;imagesc(REF);title('ref only');cb = colorbar;ylabel(cb,'counts');
@@ -38,18 +37,25 @@ MyXimea.IntegrationTime = 100e-6;
 MyXimea = MyXimea.ResizePixels(1024,1024);
 
 %% set references need for deconvolution
+[Frame,~]           = GetIntensity( IM , BG , MyXimea );
 [Frame_ref,P_tot_ref]   = GetIntensity( REF , BG , MyXimea );
 [Frame_main,P_tot_main] = GetIntensity( MAIN , BG , MyXimea );
 
-figure;imagesc(100*Frame_ref);title(['ref P_{tot}(\mu W)=',num2str(1e6*P_tot_ref)]);cb = colorbar;ylabel(cb,'\mu W /cm^2');
-figure;imagesc(100*Frame_main);title(['main P_{tot}(\mu W)=',num2str(1e6*P_tot_main)]);cb = colorbar;ylabel(cb,'\mu W /cm^2');
+figure; imagesc(100*Frame_ref);
+title(['ref P_{tot}(\mu W)=',num2str(1e6*P_tot_ref)]);cb = colorbar;ylabel(cb,'\mu W /cm^2');
+figure; imagesc(100*Frame_main);
+title(['main P_{tot}(\mu W)=',num2str(1e6*P_tot_main)]);cb = colorbar;ylabel(cb,'\mu W /cm^2');
 
 
 %% fourier class
 N   = 2^10;
 F = TF2D( N , N , 1/(MyXimea.dpixel) , 1/(MyXimea.dpixel) );
 %% define filter for FFT in pixel
-myFilter = ImageFilter( [600 320 90 90] );
+
+FrameFFT = F.fourier( Frame );
+figure(1)
+imagesc(log(abs(FrameFFT)))
+myFilter = ImageFilter( [590 218 90 90] );
 %myFilter = ImageFilter( [470 560 470 560] ); % center
 BW = myFilter.getROI(N,N);
 myFilter.DrawROI;
@@ -59,7 +65,8 @@ G = TF2D( Nfft , Nfft , (Nfft-1)*nuX0 , (Nfft-1)*nuZ0 );
 ObjectFFT = zeros(Nfft , Nfft);
 
 NBloop = unique(NB(:,1));
-% for loop1 = 1:length(NBloop)
+
+%for loop1 = 56%:length(NBloop)
 %     loop_scan = find( NB(:,1)==NBloop(loop1) ) ;
 %     for loop = loop_scan'%1:Nfiles
 %     IndexRecord = ExtractIndex(Filename{loop}) - IndexRecord0 ;
@@ -70,17 +77,15 @@ NBloop = unique(NB(:,1));
 %   
 % end
 % figure;surfc(ObjectFFT2(18:27,12:22))
-
-for loop1 = 1:length(NBloop)
     
-IndexRecord0    = ExtractIndex(Filename{1});
+IndexRecord0    = ExtractIndex(Filename{1}); % index of first frame
 IM_rec          = zeros(N,N);
 ImageCorr       = zeros(1,Nfiles);
 P_tot           = zeros(1,Nfiles);
 
-loop_scan = find( NB(:,1)==NBloop(loop1) ) ;    
+% loop_scan = find( NB(:,1)==NBloop(loop1-1) ) ;    
 % loop_scan'
-for loop = loop_scan'%:Nfiles
+for loop = 1:Nfiles
     
 %     if loop == 1
 %     IM = double( importdata([Foldername,Filename{1}]) );
@@ -102,9 +107,7 @@ for loop = loop_scan'%:Nfiles
     % evaluation of total power
     temp = FilteredFrame;
     P_tot(loop) = sum( temp(:)*MyXimea.dpixel*MyXimea.dpixel );
-    
 
-    
     % indirect reconstruction
     
     Nbx     = NB(loop,2) ;
@@ -138,23 +141,23 @@ for loop = loop_scan'%:Nfiles
 %saveas(gcf,['D:\Data\Mai\2020-01-31\data analysis\PJ\',Filename{loop}],'png');
 end
 
-figure(1)
-subplot(121)
-imagesc( F.x*1e3 , F.z*1e3 , real( IM_rec ) )
-caxis([-0.08 0.08])
-colorbar
-xlabel('x(mm)')
-ylabel('z(mm)')
-title('Real(4-phase Hologram)')
-subplot(122)
-imagesc( F.x*1e3 , F.z*1e3 , imag( IM_rec ) )
-caxis([-0.08 0.08])
-colorbar
-title('Imag(4-phase Hologram)')
-xlabel('x(mm)')
-ylabel('z(mm)')
-
-saveas(gcf,['D:\Data\Mai\2020-01-31\data analysis\PJ\image',num2str(loop1)],'png');
+% figure(1)
+% subplot(121)
+% imagesc( F.x*1e3 , F.z*1e3 , real( IM_rec ) )
+% caxis([-0.08 0.08])
+% colorbar
+% xlabel('x(mm)')
+% ylabel('z(mm)')
+% title('Real(4-phase Hologram)')
+% subplot(122)
+% imagesc( F.x*1e3 , F.z*1e3 , imag( IM_rec ) )
+% caxis([-0.08 0.08])
+% colorbar
+% title('Imag(4-phase Hologram)')
+% xlabel('x(mm)')
+% ylabel('z(mm)')
+% 
+% saveas(gcf,['D:\Data\Mai\2020-01-31\data analysis\PJ\image',num2str(loop1)],'png');
 
 % cal = 2.75;
 % nuX = Nbx*nuX0;
@@ -173,7 +176,7 @@ saveas(gcf,['D:\Data\Mai\2020-01-31\data analysis\PJ\image',num2str(loop1)],'png
 % title(['Real : (NBx,NBz)=(',num2str(Nbx),',',num2str(Nbz),')'])
 % subplot(122); imagesc(imag(IM_rec(100:750,100:800))); colorbar ;
 % title(['Imag : (NBx,NBz)=(',num2str(Nbx),',',num2str(Nbz),')'])
-% %subplot(223); imagesc(abs(IM_rec(100:750,100:800))); colorbar ;
+%subplot(223); imagesc(abs(IM_rec(100:750,100:800))); colorbar ;
 % subplot(223); imagesc(cal*F.x*1e3,cal*F.z*1e3,angle(PHASE0)); colorbar ;
 % %subplot(224); imagesc(cal*F.x*1e3,cal*F.z*1e3,angle(IM_rec(100:750,100:800).*PHASE0)); colorbar ;
 % subplot(224); imagesc(cal*F.x*1e3,cal*F.z*1e3,abs(IM_rec(100:750,100:800))); colorbar ;
@@ -189,7 +192,7 @@ saveas(gcf,['D:\Data\Mai\2020-01-31\data analysis\PJ\image',num2str(loop1)],'png
 % title(['Real : (NBx,NBz)=(',num2str(Nbx),',',num2str(Nbz),')'])
 % saveas(gcf,['D:\Data\Mai\2020-01-14\data analysis\Imag(NBx,NBz)(',num2str(Nbx),',',num2str(Nbz),')'],'png');
 
-end
+% end
 
 %%
 
@@ -234,13 +237,15 @@ Nfft = 2^10;
 G = TF2D( Nfft , Nfft , (Nfft-1)*nuX0 , (Nfft-1)*nuZ0 );
 ObjectFFT = zeros(Nfft , Nfft);
 
-Theta = -4.7124;
+
+
+
 for loop = 1:length(P_tot)
     Nbx     = NB(loop,2) ;
     Nbz     = NB(loop,3) ;
     PHASE   = NB(loop,4);
     
-    DecalZ  =   -0.2; % ??
+    DecalZ  =   -0.5; % ??
     DecalX  =   -0.2; % ??
     s =  1i*exp(2i*pi*(DecalZ*Nbz + DecalX*Nbx));
    
@@ -261,13 +266,26 @@ end
 
 Reconstruct = G.ifourier( ObjectFFT );
 % % I = ifft2(ifftshift(ObjectFFT));
- Reconstruct = Reconstruct - ones(Nfft,1)*Reconstruct(1,:);
+% Reconstruct = Reconstruct - ones(Nfft,1)*Reconstruct(1,:);
 % % I = ifftshift(I,2);
-figure(1);imagesc(G.x*1e3,G.z*1e3,real(Reconstruct))
-title('reconstructed object')
-xlabel('mm')
-ylabel('mm')
+figure(1);
+imagesc(G.x*1e3,G.z*1e3,real(Reconstruct))
+title('reconstructed AO image')
+xlabel('x(mm)')
+ylabel('z(mm)')
 cb = colorbar;
+ylabel(cb,'a.u.')
+
+l = 3.1746/2;
+rectangle('Position',[-1+2*l,-4.8,l,5*l],...
+          'Curvature',[0,0],...
+         'LineWidth',2)
+rectangle('Position',[-1,-4.8,l,5*l],...
+          'Curvature',[0,0],...
+         'LineWidth',2)
+rectangle('Position',[-1-2*l,-4.8,l,5*l],...
+          'Curvature',[0,0],...
+         'LineWidth',2)
 
 
     

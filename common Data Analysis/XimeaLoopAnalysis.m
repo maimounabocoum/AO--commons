@@ -9,7 +9,7 @@ addpath('..\read and write files');
 clearvars
 
 %% import LogFile
-[NB,nuX0,nuZ0] = ReadLogFile('');
+[NB,nuX0,nuZ0] = ReadLogFile('D:\Data\Mai\2020-02-05\no PJ NbX10');
 
 %% load sequence
 [Filename,Foldername] = uigetfile('*.tiff','MultiSelect','on');
@@ -21,9 +21,9 @@ end
 %% load images of interest
 
 %REF = double( importdata('Q:\datas\2019-12-10\EXP100\Ref_OnlyP40uW_nofiler.tif') );
-BG      = double( importdata('D:\Data\Mai\2020-01-03\buffer\BG\BG_51211.tiff') );
-MAIN    = double( importdata('D:\Data\Mai\2020-01-03\buffer\MAIN\MAIN_51719.tiff') );
-REF     = double( importdata('D:\Data\Mai\2020-01-03\buffer\REF\ref_51473.tiff') );
+BG      = double( importdata('D:\Data\Mai\2020-02-05\BG\BG_50455.tiff') );
+MAIN    = double( importdata('D:\Data\Mai\2020-02-05\OBJ\OBJ_45268.tiff') );
+REF     = double( importdata('D:\Data\Mai\2020-02-05\REF\REF_48230.tiff') );
 
 %% define a camera
 MyXimea = camera('xiB-64')    ;

@@ -21,7 +21,7 @@ classdef OF < TF2D
             N = 2^10 ;
             Fmax_x = 1/( x_scan(2) - x_scan(1) ) ;
             Fmax_z = 1/( ct(2)-ct(1) ) ;
-            obj@TF2D(N,Fmax_x,Fmax_z);
+            obj@TF2D(N,N,Fmax_x,Fmax_z);
             
             
             obj.x_scan = x_scan ;
