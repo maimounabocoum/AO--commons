@@ -1,0 +1,28 @@
+function [ Data ] = ReadBinFile( File , type )
+%created by maimouna bocoum 6-25-2020
+
+fileID = fopen(File);
+
+
+switch type
+    
+    case 'matrix'
+        
+        % retreive matrix dimension
+        s = fread(fileID,2,'int','ieee-be') ;
+        Data = fread(fileID,sum(s(:)),'double','ieee-be');
+        
+    case 'vector'
+        
+        Data = fread(fileID,1,'int','ieee-be') ;
+        Data = fread(fileID,'double','ieee-be');
+        
+end
+
+
+
+
+fclose(fileID);
+
+end
+
