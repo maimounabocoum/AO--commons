@@ -11,5 +11,5 @@ end
 I = ReadDatFile( [Foldername,Filename] )
 
 %% read banary file %%
-Data = ReadBinFile( 'D:\Data\Mai\2020-06-24\test.dat' ,'matrix_DBL')
+Data = ReadBinFile( 'D:\Data\Mai\2020-06-26\mydata_12_02_45.dat' ,'matrix_DBL')
 %%
