@@ -31,7 +31,7 @@ classdef stats_t
         
             % tranpose if vector
             if size( x , 1 ) == 1
-                x = x' ;
+                x = x' ; % transform in column vector
             end
         N               = size( x ,1) ;
         f               = ( (obj.Fs)/(N) )*( 0:(N/2) );
@@ -39,10 +39,8 @@ classdef stats_t
         XDFT            = XDFT(1:((N/2)+1),:);
         
         % homogeneous to [x^2/Hz]
-        % PSD             = (2/(N*obj.Fs))*abs(XDFT).^2;  
+         PSD             = (2/(N*obj.Fs))*abs(XDFT).^2;  
         
-        % homogeneous to [x^2/Hz]
-        PSD             = (2/(obj.Fs)^2)*abs(XDFT).^2;  
         
         end
         
