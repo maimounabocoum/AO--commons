@@ -12,22 +12,22 @@ classdef stats_t
             obj.Fs = Fs ;
         end
               
-        function [t,mu] = average(obj,X)
+        function mu = average(obj,X)
             
             if size(X,1)== 1
                 X = X' ;
             end
             
             mu = mean(X , 1) ;
-            t = (1:size(X,1));
+
             
         end
 
-        function mu = standard_dev(obj,X)
-            mu = sqrt( var(X, 0 , 1) ) ;
+        function sigma = standard_dev(obj,X)
+            sigma = sqrt( var(X, 0 , 1) ) ;
         end
         
-        function [f,PSD] = PowSpecDens(obj, x )
+        function [f,PSD,unitOUT] = PowSpecDens(obj, x , unitIN )
         
             % tranpose if vector
             if size( x , 1 ) == 1
@@ -35,12 +35,13 @@ classdef stats_t
             end
         N               = size( x ,1) ;
         f               = ( (obj.Fs)/(N) )*( 0:(N/2) );
-        XDFT            = fft( x );
+        XDFT            = fft( x ); % x unit
         XDFT            = XDFT(1:((N/2)+1),:);
         
-        % homogeneous to [x^2/Hz]
+        % homogeneous to [[x]^2/Hz]
          PSD             = (2/(N*obj.Fs))*abs(XDFT).^2;  
-        
+         
+         unitOUT = strcat(unitIN,'^2/Hz') ;
         
         end
         
