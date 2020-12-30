@@ -12,14 +12,14 @@ clearvars
 [NB,nuX0,nuZ0] = ReadLogFile('D:\Data\Mai\2020-02-05\PJ NbX14'); % loads LogFile
 NB(1:4,:) = [];
 
-%% load sequence
+%% load sequence corresponding to log file
 [Filename,Foldername] = uigetfile('*.tiff','MultiSelect','on');
 Nfiles = length(Filename);
 if Nfiles==1
    Filename = {Filename};
 end
 
-%% load images of interest
+%% load images of interest, BG and REF
 
 IM = double( importdata([Foldername,Filename{2}]) );
 BG      = double( importdata('D:\Data\Mai\2020-02-05\BG\BG_50455.tiff') );
@@ -37,7 +37,7 @@ MyXimea.IntegrationTime = 100e-6;
 MyXimea = MyXimea.ResizePixels(1024,1024);
 
 %% set references need for deconvolution
-[Frame,~]           = GetIntensity( IM , BG , MyXimea );
+[Frame,~]               = GetIntensity( IM , BG , MyXimea );
 [Frame_ref,P_tot_ref]   = GetIntensity( REF , BG , MyXimea );
 [Frame_main,P_tot_main] = GetIntensity( MAIN , BG , MyXimea );
 
@@ -47,9 +47,10 @@ figure; imagesc(100*Frame_main);
 title(['main P_{tot}(\mu W)=',num2str(1e6*P_tot_main)]);cb = colorbar;ylabel(cb,'\mu W /cm^2');
 
 
-%% fourier class
+%% Fourier class
 N   = 2^10;
 F = TF2D( N , N , 1/(MyXimea.dpixel) , 1/(MyXimea.dpixel) );
+
 %% define filter for FFT in pixel
 
 FrameFFT = F.fourier( Frame );
@@ -59,7 +60,8 @@ myFilter = ImageFilter( [590 218 90 90] );
 %myFilter = ImageFilter( [470 560 470 560] ); % center
 BW = myFilter.getROI(N,N);
 myFilter.DrawROI;
-%% -------------- begin loop 
+%%              -------------- begin loop -----------------%%
+
 Nfft = 2^10;
 G = TF2D( Nfft , Nfft , (Nfft-1)*nuX0 , (Nfft-1)*nuZ0 );
 ObjectFFT = zeros(Nfft , Nfft);
@@ -94,14 +96,18 @@ for loop = 1:Nfiles
     
     IM = double( importdata([Foldername,Filename{loop}]) );
     IndexRecord = ExtractIndex(Filename{loop}) - IndexRecord0 ;
+    
+    % get current image
     [Frame,P_frame] = GetIntensity( IM , BG , MyXimea );
 
     % filter out tagged photons
     FrameFFT      = F.fourier( Frame );
-    % figure;imagesc(log(abs(FrameFFT)));
+    % figure;imagesc(log(abs(FrameFFT))); myFilter.DrawROI;
     FilteredFrame = F.ifourier( FrameFFT.*BW) ;
        
     FilteredFrame = 2*abs(FilteredFrame).^2;%./(Frame_ref);
+    % figure;imagesc(FilteredFrame);
+    
     %FilteredFrame(abs(FilteredFrame) > 10 ) = 0 ;
     %FilteredFrame(800:end,:)=0;
     % evaluation of total power
@@ -196,20 +202,20 @@ end
 
 %%
 
-[Xf,Zf] = meshgrid(-5:5,1:10);
-
-PhasL =  1.1239*Xf + 0.718*Zf - 3.939;
-figure(6);
-subplot(121); surfc( -PhasL + UnwrapPHASE(ObjectFFT(18:27,12:22),5,5) );
-xlabel('NbX')
-ylabel('NbZ')
-view([-58.8340 17.8721])
-colorbar
-subplot(122); imagesc(PhasL);
-colorbar
-caxis([])
-xlabel('NBx')
-ylabel('NbZ')
+% [Xf,Zf] = meshgrid(-5:5,1:10);
+% 
+% PhasL =  1.1239*Xf + 0.718*Zf - 3.939;
+% figure(6);
+% subplot(121); surfc( -PhasL + UnwrapPHASE(ObjectFFT(18:27,12:22),5,5) );
+% xlabel('NbX')
+% ylabel('NbZ')
+% view([-58.8340 17.8721])
+% colorbar
+% subplot(122); imagesc(PhasL);
+% colorbar
+% caxis([])
+% xlabel('NBx')
+% ylabel('NbZ')
 
 %% interpolation of main object onto this grid:
 MAIN_FFT = F.fourier(MAIN);

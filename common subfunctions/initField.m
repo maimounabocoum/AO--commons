@@ -8,17 +8,17 @@ function [E0_tag,E0_untag,Eref] = initField(P0,Pref,ModeWidth,eta,F)
 %% ====================== Phase randomization induced by scattering phantom
 
 
-% IS0         = exp(-(FX.^2+FZ.^2)/(ModeWidth)^2); % initial Main laser beam 
+ IS0         = exp(-(FX.^2+FZ.^2)/(ModeWidth)^2); % initial Main laser beam 
 % % generation of tagged photons
-% PHASE       = 2*pi*rand(size(X)) ;
-% IS0_tag     = IS0.*exp(1i*PHASE);
+ PHASE       = 2*pi*rand(size(X)) ;
+ IS0_tag     = IS0.*exp(1i*PHASE);
 % % generation of untagged photons
-% PHASE       = 2*pi*rand(size(X)) ;
-% IS0_untag   = IS0.*exp(1i*PHASE);
+ PHASE       = 2*pi*rand(size(X)) ;
+ IS0_untag   = IS0.*exp(1i*PHASE);
 % 
 % % ============================= field out of Phantom
-% E0_tag      = F.ifourier(IS0_tag);
-% E0_untag    = F.ifourier(IS0_untag);
+ E0_tag      = F.ifourier(IS0_tag);
+ E0_untag    = F.ifourier(IS0_untag);
 % 
 % %% old code
 % IS0ref      = exp(-(FX.^2+FZ.^2)/(0.00001*ModeWidth)^2);                 % initial Main laser beam 
@@ -28,10 +28,10 @@ function [E0_tag,E0_untag,Eref] = initField(P0,Pref,ModeWidth,eta,F)
 % Eref        = F.ifourier(Iref);
 
 
-  E0_tag        = exp( -(X.^2+Z.^2)/(1e-3)^2 ) ;  	% initial Ref laser beam 
-  E0_untag      = E0_tag;  	% initial Ref laser beam 
+ % E0_tag        = exp( -(X.^2+Z.^2)/(1e-3)^2 ) ;  	% initial Ref laser beam 
+ % E0_untag      = E0_tag;  	% initial Ref laser beam 
   Eref          = exp(-(X.^2+Z.^2)/(1.5e-3)^2).*exp(1i*(15e4)*Z);  	% initial Ref laser beam 
- % Eref       = exp(1i*15e4*X);  	% initial Ref laser beam 
+  Eref       = exp(1i*15e4*X);  	% initial Ref laser beam 
 
  
  

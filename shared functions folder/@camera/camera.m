@@ -54,7 +54,7 @@ classdef camera
             obj.Nx_cam = 4704;
             obj.Ny_cam = 3424;    
             obj.dpixel = 3.9e-6;   % pixels dimension in m
-            obj.QE = 0.35;
+            obj.QE = 0.3;
             obj.x_cam = 1:(obj.Nx_cam);
             obj.y_cam = 1:(obj.Ny_cam);
             end

@@ -9,10 +9,10 @@ addpath('..\read and write files');
 clearvars
 
 %% import LogFile
-[NB,nuX0,nuZ0] = ReadLogFile('D:\Data\Mai\2020-02-05\no PJ NbX10');
+[NB,nuX0,nuZ0] = ReadLogFile('D:\Data\Mai\2020-01-14') ;
 
 %% load sequence
-[Filename,Foldername] = uigetfile('*.tiff','MultiSelect','on');
+[Filename,Foldername] = uigetfile('D:\Data\Mai\2020-01-14\*.tiff','MultiSelect','on');
 Nfiles = length(Filename);
 if Nfiles==1
    Filename = {Filename};
@@ -21,9 +21,9 @@ end
 %% load images of interest
 
 %REF = double( importdata('Q:\datas\2019-12-10\EXP100\Ref_OnlyP40uW_nofiler.tif') );
-BG      = double( importdata('D:\Data\Mai\2020-02-05\BG\BG_50455.tiff') );
-MAIN    = double( importdata('D:\Data\Mai\2020-02-05\OBJ\OBJ_45268.tiff') );
-REF     = double( importdata('D:\Data\Mai\2020-02-05\REF\REF_48230.tiff') );
+BG      = double( importdata('D:\Data\Mai\2020-01-14\BG\BG_2869.tiff') );
+MAIN    = double( importdata('D:\Data\Mai\2020-01-14\MAIN\MAIN_14991.tiff') );
+% REF     = double( importdata('D:\Data\Mai\2020-02-05\REF\REF_48230.tiff') );
 
 %% define a camera
 MyXimea = camera('xiB-64')    ;
@@ -33,17 +33,16 @@ MyXimea.IntegrationTime = 100e-6;
 MyXimea = MyXimea.ResizePixels(1024,1024);
 
 %% set references need for deconvolution
-[Frame_ref,P_tot_ref] = GetIntensity( REF , BG , MyXimea );
 [Frame_main,P_tot_main] = GetIntensity( MAIN , BG , MyXimea );
-
 
 %% fourier class
 N   = 2^10;
 F = TF2D( N , N , 1/(MyXimea.dpixel) , 1/(MyXimea.dpixel) );
+
 %% define filter for FFT in pixel
-myFilter = ImageFilter( [410 720 120 120] );
-%myFilter = ImageFilter( [470 560 470 560] ); % center
+myFilter = ImageFilter( [600 330 110 110] );
 BW = myFilter.getROI(N,N);
+%myFilter.DrawROI ;
 
 %% -------------- begin loop 
 IndexRecord0 = ExtractIndex(Filename{1});
@@ -67,12 +66,11 @@ for loop = 1:Nfiles
     [Frame,P_frame] = GetIntensity( IM , BG , MyXimea );
     
     
-    % filter out tagged photons
-    FrameFFT      = F.fourier( Frame );
-    FilteredFrame = F.ifourier( FrameFFT.*BW) ;
-    FilteredFrame = 2*abs(FilteredFrame).^2./(Frame_ref);
-    FilteredFrame(abs(FilteredFrame) > 10 ) = 0 ;
-    FilteredFrame(800:end,:)=0;
+    % filtering of tagged photons
+    FrameFFT      = F.fourier( Frame )          ; % image FTT
+    FilteredFrame = F.ifourier( FrameFFT.*BW)   ; % fourier filtering
+    FilteredFrame = 2*abs(FilteredFrame).^2     ; % intensity of fourier window
+    %FilteredFrame(abs(FilteredFrame) > 10 ) = 0 ; % 
     % evaluation of total power
     temp = FilteredFrame;
     P_tot(loop) = sum( abs(temp(:))*MyXimea.dpixel*MyXimea.dpixel );
@@ -82,13 +80,13 @@ for loop = 1:Nfiles
     MU  = MU  + temp/Nfiles;    % iterative average
     MU2 = MU2 + temp.^2/Nfiles; % iterative variance
     
-
-imagesc( F.x*1e3 , F.z*1e3 , 100*FilteredFrame )
+%imagesc( log(abs(FrameFFT)) ); myFilter.DrawROI ;
+imagesc( F.x*1e3 , F.z*1e3 , FilteredFrame )
 cb = colorbar ;
 xlabel('mm')
 ylabel('mm')
 ylabel(cb,'Intensity in \mu W /cm^2')
-title(['P_{tot}',num2str(1e6*P_tot(loop)),'\mu W , (NBx,NBz)=(',num2str(NB(mod(IndexRecord,280)+1,2)),',',num2str(NB(mod(IndexRecord,280)+1,3)),')'])
+title(['P_{tot}',num2str(1e6*P_tot(loop))])
 % ImageCorr(loop) = corr2(Frame,Frame0)    ;
 drawnow
 end
