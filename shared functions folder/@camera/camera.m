@@ -57,6 +57,22 @@ classdef camera
             obj.QE = 0.3;
             obj.x_cam = 1:(obj.Nx_cam);
             obj.y_cam = 1:(obj.Ny_cam);
+            
+                case 'DMK33GR0134'
+            
+            obj.FPS = 70;
+            obj.AD = 0 ; 
+            obj.FWC = 0;          % electrons
+            obj.Idark = 0;       % electron/px/s
+            obj.ReadNoise = 0;    % electrons
+            obj.bit = 8 ;
+            obj.Nx_cam = 1280;
+            obj.Ny_cam = 960;    
+            obj.dpixel = 3.75e-6;   % pixels dimension in m
+            obj.QE = 0.3; %0.3 at 780nm / 1% at 1064nm
+            obj.x_cam = 1:(obj.Nx_cam);
+            obj.y_cam = 1:(obj.Ny_cam);
+            
             end
         end
         
