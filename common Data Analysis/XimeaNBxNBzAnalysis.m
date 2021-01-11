@@ -6,14 +6,14 @@ addpath('..\common subfunctions')
 addpath('..\read and write files');
 
 %% load data and initialize classes
-clearvars
+clearvars -except P_tot_US  P_tot_OFF
 
 %% import LogFile
-[NB,nuX0,nuZ0] = ReadLogFile('D:\Data\Mai\2020-02-05\PJ NbX14'); % loads LogFile
-NB(1:4,:) = [];
+[NB,nuX0,nuZ0] = ReadLogFile('D:\Data\Mai\2021-01-08\image_1D_1cm'); % loads LogFile
+
 
 %% load sequence corresponding to log file
-[Filename,Foldername] = uigetfile('*.tiff','MultiSelect','on');
+[Filename,Foldername] = uigetfile('E:\datas\2021-01-10\IM_files\*.tiff','MultiSelect','on');
 Nfiles = length(Filename);
 if Nfiles==1
    Filename = {Filename};
@@ -21,10 +21,11 @@ end
 
 %% load images of interest, BG and REF
 
-IM = double( importdata([Foldername,Filename{2}]) );
-BG      = double( importdata('D:\Data\Mai\2020-02-05\BG\BG_50455.tiff') );
-MAIN    = double( importdata('D:\Data\Mai\2020-02-05\OBJ\OBJ_45268.tiff') );
-REF     = double( importdata('D:\Data\Mai\2020-02-05\REF\REF_48230.tiff') );
+IM = double( importdata([Foldername,Filename{10}]) );
+BG      = double( importdata('E:\datas\2021-01-10\bg.tif') );
+%MAIN    = double( importdata('D:\Data\Mai\2020-02-05\OBJ\OBJ_45268.tiff') );
+%REF     = double( importdata('D:\Data\Mai\2020-02-05\REF\REF_48230.tiff') );
+
 % figure;imagesc(BG);title('background');cb = colorbar;ylabel(cb,'counts');
 % figure;imagesc(MAIN);title('main only');cb = colorbar;ylabel(cb,'counts');
 % figure;imagesc(REF);title('ref only');cb = colorbar;ylabel(cb,'counts');
@@ -34,39 +35,38 @@ MyXimea = camera('xiB-64')    ;
 MyXimea.format = 8;
 MyXimea.wavelength = 780e-9;
 MyXimea.IntegrationTime = 100e-6;
-MyXimea = MyXimea.ResizePixels(1024,1024);
+MyXimea = MyXimea.ResizePixels(size(BG,2),size(BG,1));
 
 %% set references need for deconvolution
 [Frame,~]               = GetIntensity( IM , BG , MyXimea );
-[Frame_ref,P_tot_ref]   = GetIntensity( REF , BG , MyXimea );
-[Frame_main,P_tot_main] = GetIntensity( MAIN , BG , MyXimea );
+% [Frame_ref,P_tot_ref]   = GetIntensity( REF , BG , MyXimea );
+% [Frame_main,P_tot_main] = GetIntensity( MAIN , BG , MyXimea );
 
-figure; imagesc(100*Frame_ref);
-title(['ref P_{tot}(\mu W)=',num2str(1e6*P_tot_ref)]);cb = colorbar;ylabel(cb,'\mu W /cm^2');
-figure; imagesc(100*Frame_main);
-title(['main P_{tot}(\mu W)=',num2str(1e6*P_tot_main)]);cb = colorbar;ylabel(cb,'\mu W /cm^2');
+% figure; imagesc(100*Frame_ref);
+% title(['ref P_{tot}(\mu W)=',num2str(1e6*P_tot_ref)]);cb = colorbar;ylabel(cb,'\mu W /cm^2');
+% figure; imagesc(100*Frame_main);
+% title(['main P_{tot}(\mu W)=',num2str(1e6*P_tot_main)]);cb = colorbar;ylabel(cb,'\mu W /cm^2');
 
 
-%% Fourier class
-N   = 2^10;
-F = TF2D( N , N , 1/(MyXimea.dpixel) , 1/(MyXimea.dpixel) );
+%% Fourier class for data analysis
 
-%% define filter for FFT in pixel
-
+F = TF2D(MyXimea.Nx_cam , MyXimea.Ny_cam , 1/(MyXimea.dpixel) , 1/(MyXimea.dpixel) );
 FrameFFT = F.fourier( Frame );
 figure(1)
-imagesc(log(abs(FrameFFT)))
-myFilter = ImageFilter( [590 218 90 90] );
+imagesc(abs(FrameFFT))
+colorbar
+caxis([0 0.5e-8])
+myFilter = ImageFilter( [1700 900 300 300] );
 %myFilter = ImageFilter( [470 560 470 560] ); % center
-BW = myFilter.getROI(N,N);
+BW = myFilter.getROI(F.Nx,F.Nz);
 myFilter.DrawROI;
 %%              -------------- begin loop -----------------%%
 
-Nfft = 2^10;
-G = TF2D( Nfft , Nfft , (Nfft-1)*nuX0 , (Nfft-1)*nuZ0 );
-ObjectFFT = zeros(Nfft , Nfft);
+% Nfft = 2^11;
+% G = TF2D( Nfft , Nfft , (Nfft-1)*nuX0 , (Nfft-1)*nuZ0 );
+% ObjectFFT = zeros(Nfft , Nfft);
 
-NBloop = unique(NB(:,1));
+
 
 %for loop1 = 56%:length(NBloop)
 %     loop_scan = find( NB(:,1)==NBloop(loop1) ) ;
@@ -79,9 +79,10 @@ NBloop = unique(NB(:,1));
 %   
 % end
 % figure;surfc(ObjectFFT2(18:27,12:22))
-    
-IndexRecord0    = ExtractIndex(Filename{1}); % index of first frame
-IM_rec          = zeros(N,N);
+
+NBloop = unique(NB(:,1)); 
+IndexRecord0    = ExtractIndex(Filename{1},'ximea'); % index of first frame
+IM_rec          = zeros(F.Nz,F.Nx);
 ImageCorr       = zeros(1,Nfiles);
 P_tot           = zeros(1,Nfiles);
 
@@ -95,7 +96,8 @@ for loop = 1:Nfiles
 %     end
     
     IM = double( importdata([Foldername,Filename{loop}]) );
-    IndexRecord = ExtractIndex(Filename{loop}) - IndexRecord0 ;
+    IndexRecord = ExtractIndex(Filename{loop},'ximea') - IndexRecord0 ; % Ximea program
+    %IndexRecord = ExtractIndex(Filename{loop},'labview') - IndexRecord0 ;% Labview
     
     % get current image
     [Frame,P_frame] = GetIntensity( IM , BG , MyXimea );
@@ -105,7 +107,7 @@ for loop = 1:Nfiles
     % figure;imagesc(log(abs(FrameFFT))); myFilter.DrawROI;
     FilteredFrame = F.ifourier( FrameFFT.*BW) ;
        
-    FilteredFrame = 2*abs(FilteredFrame).^2;%./(Frame_ref);
+    FilteredFrame = abs(FilteredFrame);%./(Frame_ref);
     % figure;imagesc(FilteredFrame);
     
     %FilteredFrame(abs(FilteredFrame) > 10 ) = 0 ;
@@ -218,26 +220,33 @@ end
 % ylabel('NbZ')
 
 %% interpolation of main object onto this grid:
-MAIN_FFT = F.fourier(MAIN);
-cal = 7.5;
-MAIN_FFT( F.Nz/2+1,:) = 0;
-MAIN_FFT( (F.Nz/2+1)+max(NB(:,3)):end,:) = 0;
-MAIN_FFT( 1:((F.Nz/2+1)-max(NB(:,3))),:) = 0;
-MAIN_FFT(:,(F.Nx/2+1)+max(NB(:,2)):end) = 0;
-MAIN_FFT(:,1:((F.Nx/2+1)-max(NB(:,2)))) = 0;
-MAIN_FFT(:,1:((F.Nx/2+1)-max(NB(:,2)))) = 0;
-%MAIN_FFT([F.Nz/2,F.Nz/2+2],F.Nx/2+1) = MAIN_FFT([F.Nz/2,F.Nz/2+2],F.Nx/2+1);
-figure(4);imagesc((1/cal)*F.fx/G.dfx,(1/cal)*F.fz/G.dfz,abs(MAIN_FFT))
-axis([-15 15 -10 10])
-xlabel('NbX')
-ylabel('NbZ')
-colorbar
-
-MAIN_filtered = F.ifourier(MAIN_FFT);
-MAIN_filtered = MAIN_filtered - ones(Nfft,1)*MAIN_filtered(1,:);
-figure(5);imagesc(cal*F.x*1e3,cal*F.z*1e3,MAIN_filtered)
+% MAIN_FFT = F.fourier(MAIN);
+% cal = 7.5;
+% MAIN_FFT( F.Nz/2+1,:) = 0;
+% MAIN_FFT( (F.Nz/2+1)+max(NB(:,3)):end,:) = 0;
+% MAIN_FFT( 1:((F.Nz/2+1)-max(NB(:,3))),:) = 0;
+% MAIN_FFT(:,(F.Nx/2+1)+max(NB(:,2)):end) = 0;
+% MAIN_FFT(:,1:((F.Nx/2+1)-max(NB(:,2)))) = 0;
+% MAIN_FFT(:,1:((F.Nx/2+1)-max(NB(:,2)))) = 0;
+% %MAIN_FFT([F.Nz/2,F.Nz/2+2],F.Nx/2+1) = MAIN_FFT([F.Nz/2,F.Nz/2+2],F.Nx/2+1);
+% figure(4);imagesc((1/cal)*F.fx/G.dfx,(1/cal)*F.fz/G.dfz,abs(MAIN_FFT))
+% axis([-15 15 -10 10])
+% xlabel('NbX')
+% ylabel('NbZ')
+% colorbar
+% 
+% MAIN_filtered = F.ifourier(MAIN_FFT);
+% MAIN_filtered = MAIN_filtered - ones(Nfft,1)*MAIN_filtered(1,:);
+% figure(5);imagesc(cal*F.x*1e3,cal*F.z*1e3,MAIN_filtered)
 
 %% loop to get fourier componant:
+% load .dat
+% DATA = importdata('D:\Data\Louis\2021-01-07\premier image\avecLens.dat');
+% P_tot = DATA(:,1);
+% 
+%  NB(1:4,:) = [];
+%  P_tot(1:4) = [];
+
 Nfft = 2^10;
 
 G = TF2D( Nfft , Nfft , (Nfft-1)*nuX0 , (Nfft-1)*nuZ0 );
@@ -251,9 +260,9 @@ for loop = 1:length(P_tot)
     Nbz     = NB(loop,3) ;
     PHASE   = NB(loop,4);
     
-    DecalZ  =   -0.5; % ??
+    DecalZ  =   -0.05; % ??
     DecalX  =   -0.2; % ??
-    s =  1i*exp(2i*pi*(DecalZ*Nbz + DecalX*Nbx));
+    s =  -exp(2i*pi*(DecalZ*Nbz + DecalX*Nbx));
    
     ObjectFFT((Nfft/2+1)+Nbz,(Nfft/2+1)+Nbx) = ObjectFFT((Nfft/2+1)+Nbz,(Nfft/2+1)+Nbx) + s*exp(1i*2*pi*PHASE)*P_tot(loop);
     ObjectFFT((Nfft/2+1)-Nbz,(Nfft/2+1)-Nbx) = conj( ObjectFFT((Nfft/2+1)+Nbz,(Nfft/2+1)+Nbx) );   
@@ -274,7 +283,7 @@ Reconstruct = G.ifourier( ObjectFFT );
 % % I = ifft2(ifftshift(ObjectFFT));
 % Reconstruct = Reconstruct - ones(Nfft,1)*Reconstruct(1,:);
 % % I = ifftshift(I,2);
-figure(1);
+figure(2);
 imagesc(G.x*1e3,G.z*1e3,real(Reconstruct))
 title('reconstructed AO image')
 xlabel('x(mm)')
@@ -282,16 +291,16 @@ ylabel('z(mm)')
 cb = colorbar;
 ylabel(cb,'a.u.')
 
-l = 3.1746/2;
-rectangle('Position',[-1+2*l,-4.8,l,5*l],...
-          'Curvature',[0,0],...
-         'LineWidth',2)
-rectangle('Position',[-1,-4.8,l,5*l],...
-          'Curvature',[0,0],...
-         'LineWidth',2)
-rectangle('Position',[-1-2*l,-4.8,l,5*l],...
-          'Curvature',[0,0],...
-         'LineWidth',2)
+% l = 3.1746/2;
+% rectangle('Position',[-1+2*l,-4.8,l,5*l],...
+%           'Curvature',[0,0],...
+%          'LineWidth',2)
+% rectangle('Position',[-1,-4.8,l,5*l],...
+%           'Curvature',[0,0],...
+%          'LineWidth',2)
+% rectangle('Position',[-1-2*l,-4.8,l,5*l],...
+%           'Curvature',[0,0],...
+%          'LineWidth',2)
 
 
     

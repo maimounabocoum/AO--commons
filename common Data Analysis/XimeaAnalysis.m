@@ -15,20 +15,20 @@ Nfiles = length(Filename);
 
 %REF = double( importdata('Q:\datas\2019-12-10\EXP100\Ref_OnlyP40uW_nofiler.tif') );
 IM = double( importdata([Foldername,Filename{2}]) );
-BG = double( importdata('D:\Data\Mai\2020-03-13\BG\BG_10us_4781.tiff') );
-MAIN = double( importdata('D:\Data\Mai\2020-03-13\MAIN only\MAIN_J0_10us_14567.tiff') );
-REF = double( importdata('D:\Data\Mai\2020-03-13\REF only\REF_J0_10us_12505.tiff') );
+BG = double( importdata('D:\Data\Mai\2021-01-04\refs\BG.tiff') );
+MAIN = double( importdata('D:\Data\Mai\2021-01-04\refs\MAIN.tiff') );
+REF = double( importdata('D:\Data\Mai\2021-01-04\refs\REF.tiff') );
 
 %% define a camera
 MyXimea = camera('xiB-64')    ;
 MyXimea.format = 8;
 MyXimea.wavelength = 780e-9;
-MyXimea.IntegrationTime = 10e-6;
+MyXimea.IntegrationTime = 100e-6;
 MyXimea = MyXimea.ResizePixels(1024,1024);
 
 % get intensity and total power
-[Frame,P_tot]           = GetIntensity( IM , BG , MyXimea );
-[Frame_ref,P_tot_ref]   = GetIntensity( REF , BG , MyXimea );
+[Frame,P_tot]           = GetIntensity( IM   , BG , MyXimea );
+[Frame_ref,P_tot_ref]   = GetIntensity( REF  , BG , MyXimea );
 [Frame_main,P_tot_main] = GetIntensity( MAIN , BG , MyXimea );
 
 figure(11)
@@ -54,16 +54,6 @@ ylabel('mm')
 ylabel(cb,'Intensity in \mu W /cm^2')
 title(['Total Power is ',num2str(1e6*P_tot_main),'\mu W'])
 
-%%
-figure(3)
-F_test = Frame_main.*Frame_ref;
-imagesc( 1e3*MyXimea.x_cam*MyXimea.dpixel , 1e3*MyXimea.x_cam*MyXimea.dpixel , F_test)
-cb = colorbar ;
-P_tot_test = sum( F_test(:)*MyXimea.dpixel*MyXimea.dpixel );
-xlabel('mm')
-ylabel('mm')
-ylabel(cb,'Intensity in \mu W /cm^2')
-title(['Total Power is ',num2str(1e6*P_tot_test),'\mu W'])
 
 
 %% Definition of Fourier transform
@@ -99,9 +89,9 @@ for loop = 1:Nfiles
 % inverse FFT
 IM = double( importdata([Foldername,Filename{loop}]) );
 [Frame,~]  = GetIntensity( IM , BG , MyXimea );
-FrameFFT = F.fourier( Frame );
-FilteredFrame = F.ifourier( FrameFFT.*BW ) ;
-FilteredFrame = abs(FilteredFrame).^2 ; %/(1.1+Frame_ref)
+%FrameFFT = F.fourier( Frame );
+%FilteredFrame = F.ifourier( FrameFFT.*BW ) ;
+%FilteredFrame = abs(FilteredFrame).^2 ; %/(1.1+Frame_ref)
 
 % total sum in power
 P_tot(loop) = sum( abs(FilteredFrame(:))*MyXimea.dpixel*MyXimea.dpixel );
