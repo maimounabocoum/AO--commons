@@ -38,14 +38,14 @@ classdef TF_t
             obj.Fs = Fs ;
             obj.N = N;
             obj.dt = 1/Fs; % in m
-            obj.t = (-N/2:1:N/2-1)*obj.dt;
+            obj.t = ( (-floor(N/2)):(ceil(N/2)-1) )*obj.dt;
             obj.T = (N-1)*obj.dt;
             obj.df = Fs/N ; % because it should match (N/2)df = Fs/2 according to Nyquist in DFT
-            obj.f = (-N/2:1:(N/2-1))*obj.df;
+            obj.f = (-N/2:1:(ceil(N/2)-1))*obj.df;
             obj.w = 2*pi*obj.f;
-            obj.l(1:N/2)=-1540./obj.f(1:N/2); % wavelength
-            obj.l(N/2+1)=1e15;   % non zero value at origin
-            obj.l(N/2+2:N)= 1540./obj.f(N/2+2:N); 
+            obj.l(1:floor(N/2))=-1540./obj.f(1:floor(N/2)); % wavelength
+            obj.l(floor(N/2)+1)=1e15;   % non zero value at origin
+            obj.l(floor(N/2)+2:N)= 1540./obj.f(floor(N/2)+2:N); 
             end
             
             

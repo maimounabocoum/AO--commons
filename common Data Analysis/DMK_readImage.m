@@ -19,8 +19,8 @@ MyDMK.wavelength = 1064e-9;
 MyDMK.IntegrationTime = 100e-6;
 
 %% import image
-IM = double( importdata([Foldername,Filename{1}]) );
-BG = double( importdata([Foldername,Filename{2}]) );
+IM = double( importdata([Foldername,Filename{2}]) );
+BG = double( importdata([Foldername,Filename{1}]) );
 
 %% exemple 
 % IM = double( importdata('D:\Data\Mai\2020-03-06\MAIN_J0_10us_14596.tiff') );
