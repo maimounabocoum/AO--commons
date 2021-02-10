@@ -13,7 +13,7 @@ clearvars -except P_tot_US  P_tot_OFF
 
 
 %% load sequence corresponding to log file
-[Filename,Foldername] = uigetfile('E:\datas\2021-01-10\IM_files\*.tiff','MultiSelect','on');
+[Filename,Foldername] = uigetfile('Q:\datas\experimental datas\2021-01-04\DoublingEffect\*.tiff','MultiSelect','on');
 Nfiles = length(Filename);
 if Nfiles==1
    Filename = {Filename};
@@ -21,8 +21,8 @@ end
 
 %% load images of interest, BG and REF
 
-IM = double( importdata([Foldername,Filename{10}]) );
-BG      = double( importdata('E:\datas\2021-01-10\bg.tif') );
+IM = double( importdata([Foldername,Filename{2}]) );
+BG      = double( importdata('Q:\datas\experimental datas\2021-01-04\refs\BG.tiff') );
 %MAIN    = double( importdata('D:\Data\Mai\2020-02-05\OBJ\OBJ_45268.tiff') );
 %REF     = double( importdata('D:\Data\Mai\2020-02-05\REF\REF_48230.tiff') );
 
@@ -55,7 +55,7 @@ FrameFFT = F.fourier( Frame );
 figure(1)
 imagesc(abs(FrameFFT))
 colorbar
-caxis([0 0.5e-8])
+caxis([0 5e-8])
 myFilter = ImageFilter( [1700 900 300 300] );
 %myFilter = ImageFilter( [470 560 470 560] ); % center
 BW = myFilter.getROI(F.Nx,F.Nz);
@@ -65,7 +65,8 @@ myFilter.DrawROI;
 % Nfft = 2^11;
 % G = TF2D( Nfft , Nfft , (Nfft-1)*nuX0 , (Nfft-1)*nuZ0 );
 % ObjectFFT = zeros(Nfft , Nfft);
-
+figure(1)
+imagesc(Frame)
 
 
 %for loop1 = 56%:length(NBloop)

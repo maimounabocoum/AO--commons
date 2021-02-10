@@ -91,7 +91,7 @@ classdef camera
         function SIG = GetShotNoise(obj,mu)
             h = 6.6260e-34; % m^2 kg / s
             Ephoton = h*(3e8/obj.wavelength) ; % J
-            alpha = (Ephoton)/(obj.IntegrationTime); %W
+            alpha = (Ephoton)/(obj.QE*obj.IntegrationTime); %W
             SIG = sqrt(alpha)*sqrt(mu);
         end
         
