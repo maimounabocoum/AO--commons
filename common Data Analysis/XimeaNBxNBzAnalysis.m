@@ -1,5 +1,5 @@
 %%   this is a loop analysis routine %%%
-%% add relative path to current path
+%%   add relative path to current path
 
 addpath('..\shared functions folder');
 addpath('..\common subfunctions')
@@ -22,14 +22,14 @@ end
 
 %% load images of interest, BG and REF
 
-IM = double( importdata([Foldername,Filename{10}]) );
-BG      = double( importdata('D:\Data\Louis\2021-01-22\refs\BG.tiff') );
-%MAIN    = double( importdata('D:\Data\Mai\2020-02-05\OBJ\OBJ_45268.tiff') );
-%REF     = double( importdata('D:\Data\Mai\2020-02-05\REF\REF_48230.tiff') );
+IM        = double( importdata([Foldername,Filename{10}]) );
+BG        = double( importdata('D:\Data\Louis\2021-01-22\refs\BG.tiff') );
+% MAIN    = double( importdata('D:\Data\Mai\2020-02-05\OBJ\OBJ_45268.tiff') );
+% REF     = double( importdata('D:\Data\Mai\2020-02-05\REF\REF_48230.tiff') );
 
-% figure;imagesc(BG);title('background');cb = colorbar;ylabel(cb,'counts');
-% figure;imagesc(MAIN);title('main only');cb = colorbar;ylabel(cb,'counts');
-% figure;imagesc(REF);title('ref only');cb = colorbar;ylabel(cb,'counts');
+% figure;imagesc(BG);   title('background'); cb = colorbar;ylabel(cb,'counts');
+% figure;imagesc(MAIN); title('main only');  cb = colorbar;ylabel(cb,'counts');
+% figure;imagesc(REF);  title('ref only');   cb = colorbar;ylabel(cb,'counts');
 
 %% define a camera
 MyXimea = camera('xiB-64')    ;
@@ -39,7 +39,7 @@ MyXimea.IntegrationTime = 100e-6;
 MyXimea = MyXimea.ResizePixels(size(BG,2),size(BG,1));
 
 %% set references need for deconvolution
-[Frame,~]               = GetIntensity( IM , BG , MyXimea );
+[Frame,~]                = GetIntensity( IM , BG , MyXimea );
 % [Frame_ref,P_tot_ref]   = GetIntensity( REF , BG , MyXimea );
 % [Frame_main,P_tot_main] = GetIntensity( MAIN , BG , MyXimea );
 
@@ -61,25 +61,25 @@ myFilter = ImageFilter( [880 320 250 250] );
 %myFilter = ImageFilter( [470 560 470 560] ); % center
 BW = myFilter.getROI(F.Nx,F.Nz);
 myFilter.DrawROI;
-%%              -------------- begin loop -----------------%%
 
-% Nfft = 2^11;
+%%-------------------------------- begin loop -----------------%%
+
+% Nfft = 2^11;s
 % G = TF2D( Nfft , Nfft , (Nfft-1)*nuX0 , (Nfft-1)*nuZ0 );
 % ObjectFFT = zeros(Nfft , Nfft);
 
 
 
-%for loop1 = 56%:length(NBloop)
+% for loop1 = 56%:length(NBloop)
 %     loop_scan = find( NB(:,1)==NBloop(loop1) ) ;
 %     for loop = loop_scan'%1:Nfiles
 %     IndexRecord = ExtractIndex(Filename{loop}) - IndexRecord0 ;
 %     Nbx = NB(mod(IndexRecord,Nfiles)+1,2) ;
 %     Nbz = NB(mod(IndexRecord,Nfiles)+1,3) ;
-%   ObjectFFT2((2^4+1)+Nbz,(2^4+1)+Nbx) = mean(mean(Gag.raw(5000:6000,loop_scan),1),2);
-%     end
-%   
+%     ObjectFFT2((2^4+1)+Nbz,(2^4+1)+Nbx) = mean(mean(Gag.raw(5000:6000,loop_scan),1),2);
+%     end   
 % end
-% figure;surfc(ObjectFFT2(18:27,12:22))
+% figure ; surfc(ObjectFFT2(18:27,12:22)) ;
 
 NBloop = unique(NB(:,1)); 
 IndexRecord0    = ExtractIndex(Filename{1},'ximea'); % index of first frame
@@ -106,13 +106,13 @@ for loop = 1:Nfiles
     % filter out tagged photons
     FrameFFT      = F.fourier( Frame );
     % figure;imagesc(log(abs(FrameFFT))); myFilter.DrawROI;
-    FilteredFrame = F.ifourier( FrameFFT.*BW) ;
+    FilteredFrame = F.ifourier( FrameFFT.*BW ) ;
        
-    FilteredFrame = abs(FilteredFrame).^2;%./(Frame_ref);
+    FilteredFrame = abs(FilteredFrame).^2; %./(Frame_ref);
     % figure;imagesc(FilteredFrame);
     
-    %FilteredFrame(abs(FilteredFrame) > 10 ) = 0 ;
-    %FilteredFrame(800:end,:)=0;
+    % FilteredFrame(abs(FilteredFrame) > 10 ) = 0 ;
+    % FilteredFrame(800:end,:)=0;
     % evaluation of total power
     temp = FilteredFrame;
     P_tot(loop) = sum( temp(:)*MyXimea.dpixel*MyXimea.dpixel );
@@ -147,7 +147,7 @@ for loop = 1:Nfiles
 % colorbar
 % axis([-1 1 -1 1]*0.5e7)
 % drawnow
-%saveas(gcf,['D:\Data\Mai\2020-01-31\data analysis\PJ\',Filename{loop}],'png');
+% saveas(gcf,['D:\Data\Mai\2020-01-31\data analysis\PJ\',Filename{loop}],'png');
 end
 
 % figure(1)
@@ -168,6 +168,11 @@ end
 % 
 % saveas(gcf,['D:\Data\Mai\2020-01-31\data analysis\PJ\image',num2str(loop1)],'png');
 
+data_gage = load('D:\Data\Louis\2021-01-22\gel_retourne\sans_PJ\BB_PD_1-10') ;
+t = (1:size(data_gage.raw,1))/data_gage.SampleRate ; 
+figure ;
+plot( t*1e6 , data_gage.raw(:,100) ) ;
+
 % cal = 2.75;
 % nuX = Nbx*nuX0;
 % nuZ = Nbz*nuZ0;
@@ -185,7 +190,7 @@ end
 % title(['Real : (NBx,NBz)=(',num2str(Nbx),',',num2str(Nbz),')'])
 % subplot(122); imagesc(imag(IM_rec(100:750,100:800))); colorbar ;
 % title(['Imag : (NBx,NBz)=(',num2str(Nbx),',',num2str(Nbz),')'])
-%subplot(223); imagesc(abs(IM_rec(100:750,100:800))); colorbar ;
+% subplot(223); imagesc(abs(IM_rec(100:750,100:800))); colorbar ;
 % subplot(223); imagesc(cal*F.x*1e3,cal*F.z*1e3,angle(PHASE0)); colorbar ;
 % %subplot(224); imagesc(cal*F.x*1e3,cal*F.z*1e3,angle(IM_rec(100:750,100:800).*PHASE0)); colorbar ;
 % subplot(224); imagesc(cal*F.x*1e3,cal*F.z*1e3,abs(IM_rec(100:750,100:800))); colorbar ;
@@ -197,7 +202,7 @@ end
 
 % mean(Gag.raw(5000:6000,:),2)
 
-%caxis([0 7e-3])
+% caxis([0 7e-3])
 % title(['Real : (NBx,NBz)=(',num2str(Nbx),',',num2str(Nbz),')'])
 % saveas(gcf,['D:\Data\Mai\2020-01-14\data analysis\Imag(NBx,NBz)(',num2str(Nbx),',',num2str(Nbz),')'],'png');
 
@@ -205,9 +210,8 @@ end
 
 %%
 
-% [Xf,Zf] = meshgrid(-5:5,1:10);
-% 
-% PhasL =  1.1239*Xf + 0.718*Zf - 3.939;
+% [Xf,Zf] = meshgrid(-5:5,1:10); 
+% PhasL   =  1.1239*Xf + 0.718*Zf - 3.939;
 % figure(6);
 % subplot(121); surfc( -PhasL + UnwrapPHASE(ObjectFFT(18:27,12:22),5,5) );
 % xlabel('NbX')
@@ -235,7 +239,7 @@ end
 % xlabel('NbX')
 % ylabel('NbZ')
 % colorbar
-% 
+
 % MAIN_filtered = F.ifourier(MAIN_FFT);
 % MAIN_filtered = MAIN_filtered - ones(Nfft,1)*MAIN_filtered(1,:);
 % figure(5);imagesc(cal*F.x*1e3,cal*F.z*1e3,MAIN_filtered)
@@ -278,10 +282,6 @@ end
  Ireconst = squeeze(reshape( Ireconst ,[1,G.Nx,G.Nz]))';
  figure;imagesc(G.x,G.z,real( Ireconst));
  colorbar;
-% axis([-15 15 -10 10])
-% %caxis([-2 2]*10e-8)
-% xlabel('NbX')
-% ylabel('NbZ')
 
 %%
 
