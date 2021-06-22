@@ -12,7 +12,7 @@
 %mu_a             en cm^-1
 %masse de gel     en g%
 
-lambda=765;
+lambda=1064;
 
 % concAgar=0.0135;
 % concIntralipid=0.1269;
@@ -21,7 +21,7 @@ lambda=765;
 Youngmodulus=60;
 mu_sprime= 10;
 mu_a=0;
-massGel=5*5*2;
+massGel=5*5*3;
 
 
 

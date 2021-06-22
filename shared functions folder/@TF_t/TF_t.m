@@ -7,9 +7,9 @@ classdef TF_t
         T  
         t       % position in m
         Fs
-        f       %frequency varaiable
-        w       %frequency variable in rad
-        l       %wavelength variable
+        f       % frequency varaiable
+        w       % frequency variable in rad
+        l       % wavelength variable
         dt
         df
         dw
@@ -56,7 +56,7 @@ classdef TF_t
             obj.N = N;
             obj.dt = 1/Fmax; % in m
             obj.t = (-N/2:1:N/2-1)*obj.dt;
-            obj.tRange = (N-1)*obj.dt;
+            obj.T = (N-1)*obj.dt;
             obj.df = 1/obj.tRange;
             obj.f = (-N/2:1:N/2-1)*obj.df;
             obj.w = 2*pi*obj.f;
