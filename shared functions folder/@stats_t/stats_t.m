@@ -27,7 +27,7 @@ classdef stats_t
             sigma = sqrt( var(X, 0 , 1) ) ;
         end
         
-        function [f,PSD,unitOUT] = PowSpecDens(obj, x , unitIN )
+        function [f,PSD, unitOUT] = PowSpecDens(obj, x , unitIN )
         
             % tranpose if vector
             if size( x , 1 ) == 1
