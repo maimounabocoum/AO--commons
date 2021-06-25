@@ -4,16 +4,17 @@
 addpath('..\shared functions folder');
 addpath('..\common subfunctions')
 addpath('..\read and write files');
+addpath('D:\AO--simulations\Scan routines')
 
 %% load data and initialize classes
 clearvars -except P_tot_US  P_tot_OFF
 
 %% import LogFile
-[NB,nuX0,nuZ0] = ReadLogFile('D:\Data\Mai\2021-01-08\image_1D_1cm'); % loads LogFile
+[NB,nuX0,nuZ0] = ReadLogFile('D:\Data\Louis\2021-01-22\gel_retourne\sans_PJ\1-10'); % loads LogFile
 
 
 %% load sequence corresponding to log file
-[Filename,Foldername] = uigetfile('Q:\datas\experimental datas\2021-01-04\DoublingEffect\*.tiff','MultiSelect','on');
+[Filename,Foldername] = uigetfile('D:\Data\Louis\2021-01-22\gel_retourne\sans_PJ\1-10\*.tiff','MultiSelect','on');
 Nfiles = length(Filename);
 if Nfiles==1
    Filename = {Filename};
@@ -21,8 +22,8 @@ end
 
 %% load images of interest, BG and REF
 
-IM = double( importdata([Foldername,Filename{2}]) );
-BG      = double( importdata('Q:\datas\experimental datas\2021-01-04\refs\BG.tiff') );
+IM = double( importdata([Foldername,Filename{10}]) );
+BG      = double( importdata('D:\Data\Louis\2021-01-22\refs\BG.tiff') );
 %MAIN    = double( importdata('D:\Data\Mai\2020-02-05\OBJ\OBJ_45268.tiff') );
 %REF     = double( importdata('D:\Data\Mai\2020-02-05\REF\REF_48230.tiff') );
 
@@ -55,8 +56,8 @@ FrameFFT = F.fourier( Frame );
 figure(1)
 imagesc(abs(FrameFFT))
 colorbar
-caxis([0 5e-8])
-myFilter = ImageFilter( [1700 900 300 300] );
+caxis([0 0.5e-8])
+myFilter = ImageFilter( [880 320 250 250] );
 %myFilter = ImageFilter( [470 560 470 560] ); % center
 BW = myFilter.getROI(F.Nx,F.Nz);
 myFilter.DrawROI;
@@ -65,8 +66,7 @@ myFilter.DrawROI;
 % Nfft = 2^11;
 % G = TF2D( Nfft , Nfft , (Nfft-1)*nuX0 , (Nfft-1)*nuZ0 );
 % ObjectFFT = zeros(Nfft , Nfft);
-figure(1)
-imagesc(Frame)
+
 
 
 %for loop1 = 56%:length(NBloop)
@@ -108,7 +108,7 @@ for loop = 1:Nfiles
     % figure;imagesc(log(abs(FrameFFT))); myFilter.DrawROI;
     FilteredFrame = F.ifourier( FrameFFT.*BW) ;
        
-    FilteredFrame = abs(FilteredFrame);%./(Frame_ref);
+    FilteredFrame = abs(FilteredFrame).^2;%./(Frame_ref);
     % figure;imagesc(FilteredFrame);
     
     %FilteredFrame(abs(FilteredFrame) > 10 ) = 0 ;
@@ -249,43 +249,50 @@ end
 %  P_tot(1:4) = [];
 
 Nfft = 2^10;
-
-G = TF2D( Nfft , Nfft , (Nfft-1)*nuX0 , (Nfft-1)*nuZ0 );
+G0 = TF2D( Nfft , Nfft , (Nfft-1)*nuX0 , (Nfft-1)*nuZ0 );
 ObjectFFT = zeros(Nfft , Nfft);
 
-
-
-
-for loop = 1:length(P_tot)
+for loop = 5:length(P_tot)
     Nbx     = NB(loop,2) ;
     Nbz     = NB(loop,3) ;
     PHASE   = NB(loop,4);
     
-    DecalZ  =   -0.05; % ??
-    DecalX  =   -0.2; % ??
-    s =  -exp(2i*pi*(DecalZ*Nbz + DecalX*Nbx));
+    DecalZ  =   0; % ??
+    DecalX  =   0; % ??
+    s =  1i*exp(2i*pi*(DecalZ*Nbz + DecalX*Nbx));
    
     ObjectFFT((Nfft/2+1)+Nbz,(Nfft/2+1)+Nbx) = ObjectFFT((Nfft/2+1)+Nbz,(Nfft/2+1)+Nbx) + s*exp(1i*2*pi*PHASE)*P_tot(loop);
     ObjectFFT((Nfft/2+1)-Nbz,(Nfft/2+1)-Nbx) = conj( ObjectFFT((Nfft/2+1)+Nbz,(Nfft/2+1)+Nbx) );   
 
 end
 
-% figure;imagesc(G.fx/G.dfx,G.fz/G.dfz,abs(ObjectFFT)), colorbar;
+%% inversion using simulated Matrix
+[U,S,V] = svd(G.M);
+ Splus = 0*S;
+ seuil = S(200,200);
+ Splus(S>seuil) = 1./S(S>seuil);
+ Splus = Splus';
+ Minv = V*Splus*U';
+ Ireconst = Minv*P_tot(5:end)';
+
+ Ireconst = squeeze(reshape( Ireconst ,[1,G.Nx,G.Nz]))';
+ figure;imagesc(G.x,G.z,real( Ireconst));
+ colorbar;
 % axis([-15 15 -10 10])
 % %caxis([-2 2]*10e-8)
 % xlabel('NbX')
 % ylabel('NbZ')
 
-
+%%
 
 % get FFT
 
-Reconstruct = G.ifourier( ObjectFFT );
+Reconstruct = G0.ifourier( ObjectFFT );
 % % I = ifft2(ifftshift(ObjectFFT));
 % Reconstruct = Reconstruct - ones(Nfft,1)*Reconstruct(1,:);
 % % I = ifftshift(I,2);
 figure(2);
-imagesc(G.x*1e3,G.z*1e3,real(Reconstruct))
+imagesc(G0.x*1e3,G0.z*1e3,real(Reconstruct))
 title('reconstructed AO image')
 xlabel('x(mm)')
 ylabel('z(mm)')
