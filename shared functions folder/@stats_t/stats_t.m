@@ -27,7 +27,7 @@ classdef stats_t
             sigma = sqrt( var(X, 0 , 1) ) ;
         end
         
-        function [f,PSD,unitOUT] = PowSpecDens(obj, x , unitIN )
+        function [f,PSD, unitOUT] = PowSpecDens(obj, x , unitIN )
         
             % tranpose if vector
             if size( x , 1 ) == 1
@@ -40,6 +40,25 @@ classdef stats_t
         
         % homogeneous to [[x]^2/Hz]
          PSD             = (2/(N*obj.Fs))*abs(XDFT).^2;  
+         
+         unitOUT = strcat(unitIN,'^2/Hz') ;
+        
+        end
+        
+        function [f,PSD,Phase,unitOUT] = Spectrum(obj, x , unitIN )
+        
+            % tranpose if vector
+            if size( x , 1 ) == 1
+                x = x' ; % transform in column vector
+            end
+        N               = size( x ,1) ;
+        f               = ( (obj.Fs)/(N) )*( 0:(N/2) );
+        XDFT            = fft( x ); % x unit
+        XDFT            = XDFT(1:((N/2)+1),:);
+        
+        % homogeneous to [[x]^2/Hz]
+         PSD             = (2/(N*obj.Fs))*abs(XDFT).^2;  
+         Phase           = angle(XDFT);  
          
          unitOUT = strcat(unitIN,'^2/Hz') ;
         
