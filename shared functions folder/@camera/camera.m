@@ -63,7 +63,7 @@ classdef camera
             obj.FPS = 70;
             obj.AD = 0 ; 
             obj.FWC = 0;          % electrons
-            obj.Idark = 0;       % electron/px/s
+            obj.Idark = 0;        % electron/px/s
             obj.ReadNoise = 0;    % electrons
             obj.bit = 8 ;
             obj.Nx_cam = 1280;
