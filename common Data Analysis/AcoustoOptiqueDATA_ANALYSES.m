@@ -50,7 +50,7 @@
      [freq2 , PSDx2 , unit_psdx2  ] = MyStat2.PowSpecDens( alpha*raw' , unit ) ;   % acquisition long
      psdx1 = mean(PSDx1,2);
      nsdx1 = mean(NSDx1,2);
-     psdx2 = mean(PSDx2,2);
+     psdx2 = mean(PSDx2,2);fg
      
     
     
