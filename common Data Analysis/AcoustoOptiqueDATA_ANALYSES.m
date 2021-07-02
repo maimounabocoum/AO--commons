@@ -31,28 +31,31 @@
      % interval for long time analysis
      t1 = (1/Fs1)*(1:size(raw,1)); % s
      t2 = (1/Fs2)*(1:size(raw,2)); % s
-     I_extract = find( t1 >= 300e-6 & t1 <= 301e-6);
      
+     
+     I_extract = find( t1 >= 300e-6 & t1 <= 301e-6);
+       
+     Datas_mu1   = MyStat1.average(     alpha*raw(I_extract,:)  );
+     Datas_std1  = MyStat1.standard_dev( alpha*raw(I_extract,:)  );   
+     Datas_mu2   = MyStat2.average(     alpha*raw' );
+     Datas_std2  = MyStat2.standard_dev( alpha*raw');
+     
+     [freq1 , PSDx1 , unit_psdx1  ] = MyStat1.PowSpecDens( alpha*raw   , unit ) ; % acquisition quick
+     [~ , NSDx1 ,~  ]               = MyStat1.NoiseSpecDens( alpha*raw , unit ) ;  % noise spectral density
+     
+     [freq2 , PSDx2 , unit_psdx2  ] = MyStat2.PowSpecDens( alpha*raw' , unit )  ;   % acquisition long
+     psdx1 = mean(PSDx1,2);
+     nsdx1 = mean(NSDx1,2);
+     
+     psdx2 = mean(PSDx2,2);
+     
+    
     Hmu = figure(1); clf(Hmu,'reset');
     set(Hmu,'color','w')
     % set(Hmu,'units','normalized','outerposition',[0 0 1 1])
     %set(Hmu,'WindowStyle','docked'); 
     % raw/(0.45*1e5)  [V]unit x [W/V] = [W]unit - SI PD
     % raw/(0.45*1e5)  [V]unit x [W/V] = [W]unit - Menlo PD - saturation 0.7529 V
-
-    
-     Datas_mu1   = MyStat1.average(     alpha*raw(I_extract,:)  );
-     Datas_std1  = MyStat1.standard_dev( alpha*raw(I_extract,:)  );   
-     Datas_mu2   = MyStat2.average(     alpha*raw' );
-     Datas_std2  = MyStat2.standard_dev( alpha*raw');
-     [freq1 , PSDx1 , unit_psdx1  ] = MyStat1.PowSpecDens( alpha*raw   , unit )  ; % acquisition quick
-     [freq1 , NSDx1 , unit_psdx1  ] = MyStat1.PowSpecDens( alpha*raw - repmat(Datas_mu2',1,length(Datas_mu1))   , unit ) ; % noise spectral density
-     [freq2 , PSDx2 , unit_psdx2  ] = MyStat2.PowSpecDens( alpha*raw' , unit ) ;   % acquisition long
-     psdx1 = mean(PSDx1,2);
-     nsdx1 = mean(NSDx1,2);
-     psdx2 = mean(PSDx2,2);fg
-     
-    
     
     subplot(221)
     imagesc(1e3*t2,1e6*t1,1e6*alpha*raw);

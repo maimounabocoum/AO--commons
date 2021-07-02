@@ -45,6 +45,27 @@ classdef stats_t
         
         end
         
+         function [f,NSD, unitOUT] = NoiseSpecDens(obj, x , unitIN )
+        
+            % tranpose if vector
+            if size( x , 1 ) == 1
+                x = x' ; % transform in column vector
+            end
+            
+        % remove average signal from Matrix
+        x = x - repmat(mean(x,2),1,size(x,2)) ;
+        N               = size( x ,1) ;
+        f               = ( (obj.Fs)/(N) )*( 0:(N/2) );
+        XDFT            = fft( x ); % x unit
+        XDFT            = XDFT(1:((N/2)+1),:);
+        
+        % homogeneous to [[x]^2/Hz]
+         NSD             = (2/(N*obj.Fs))*abs(XDFT).^2;  
+         
+         unitOUT = strcat(unitIN,'^2/Hz') ;
+        
+        end
+        
         function [f,PSD,Phase,unitOUT] = Spectrum(obj, x , unitIN )
         
             % tranpose if vector
