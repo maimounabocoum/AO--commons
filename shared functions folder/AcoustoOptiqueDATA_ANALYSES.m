@@ -26,7 +26,11 @@
      unit = 'W';
      %alpha = 1/(0.45*1e5) ; % convertion W/Volt - thorlabs
      alpha = (200e-6)/0.3057 ; % convertion W/Volt - Menlo
-     
+    
+
+    
+    %% 1d-noise plots
+    
     Hmu = figure(1); clf(Hmu,'reset');
     set(Hmu,'color','w')
     % set(Hmu,'units','normalized','outerposition',[0 0 1 1])
@@ -39,86 +43,58 @@
      Datas_std1  = MyStat1.standard_dev( alpha*raw  );   
      Datas_mu2   = MyStat2.average(     alpha*raw' );
      Datas_std2  = MyStat2.standard_dev( alpha*raw');
-     [freq1 , PSDx1 , unit_psdx1  ] = MyStat1.PowSpecDens( alpha*raw   , unit )  ; % acquisition quick
+     [freq1 , PSDx1 , unit_psdx1  ] = MyStat1.PowSpecDens( alpha*raw  , unit )  ; % acquisition quick
      [freq2 , PSDx2 , unit_psdx2  ] = MyStat2.PowSpecDens( alpha*raw' , unit ) ; % acquisition long
-     psdx1 = mean(PSDx1,2);
-     psdx2 = mean(PSDx2,2);
+     psdx1 = mean(PSDx1,2)';
+     psdx2 = mean(PSDx2,2)';
+     psdx1_std = sqrt(var(PSDx1,0,2))';
+     psdx2_std = sqrt(var(PSDx2,0,2))';
+     s1 = 10*log(sqrt( psdx1(2:end)/(1e-3) )) ; % dBm/Hz unit
+     s2 = 10*log(sqrt( psdx2(2:end)/(1e-3) )) ; % dBm/Hz unit
+     s1_std = 10*log(sqrt( psdx1_std(2:end)/(1e-3) )) ; % dBm/Hz unit
+     s2_std = 10*log(sqrt( psdx2_std(2:end)/(1e-3) )) ; % dBm/Hz unit
+     
      
     t1 = (1/Fs1)*(1:size(raw,1)); % s
     t2 = (1/Fs2)*(1:size(raw,2)); % s
     
     subplot(221)
-    imagesc(1e3*t2,1e6*t1,1e6*alpha*raw);
-    set(gca,'XAxisLocation','top');
-    xlabel('t2( ms )')
-    ylabel('t1( \mu s )')
-    cb = colorbar;
-    ylabel(cb,'\mu W')
-    colormap(parula)
-    title(sprintf('Number of traces = %d',size(raw,2)))
-  
-    subplot(223)
-    s1 = Datas_std1./sqrt(Ephoton*BW*abs(mean(Datas_mu1)));
-    s2 = Datas_std2./sqrt(Ephoton*BW*abs(mean(Datas_mu1)));
-
-    %s3 = 1e6*sqrt(Ephoton*BW*abs(mean(Datas_mu1))); % shot noise for detector BW 150
- line( t2*1e3,s1,'Color','k'); 
-    ylabel(strcat('\sigma / \sigma_{sn} over long '))
-    xlabel('time (ms)')
-    ax1 = gca; % current axes
-    set(ax1,'XColor','k');
-    set(ax1,'YColor','k');
-    %set(ax1,'Ylim',[0.1*min([s1(:);s2(:)]) 1.5*max([s1(:);s2(:)])]);
-    ax1_pos = get(ax1,'Position'); % position of first axes
-    set(ax1,'YAxisLocation','right');
-    
-    ax2 = axes('Position',ax1_pos,...
-    'XAxisLocation','top',...
-    'YAxisLocation','left',...
-    'Color','none');
-line(t1*1e6,s2,'Parent',ax2,'Color','r')
-    set(ax2,'Ylim',get(ax1,'Ylim'));
-    set(ax1,'YColor','r');
-    ylabel(strcat('\sigma / \sigma_{sn} over short'))
-    xlabel('t1 (\mu s)','fontsize',5)
-     
-    subplot(222)
-    title('average traces')
-l = line(t2*1e3,1e6*Datas_mu1,'Color','k'); hold on 
+    title(sprintf('%d sampled points at %d Hz', length(t2) , Fs2 ))
+l = line(t2*1e3,1e6*Datas_mu1,'Color','k','marker','x'); hold on ;
     ylabel(strcat('\mu (\mu ',unit,')over short '))
     xlabel('time (ms)','fontsize',10)
     ax1 = gca; % current axes
+    set(ax1,'Ylim',[ 0.9*min(min(1e6*Datas_mu1),min(1e6*Datas_mu2)) 1.2*max(max(1e6*Datas_mu1),max(1e6*Datas_mu2)) ]);
     set(ax1,'XColor','k');
     set(ax1,'YColor','k');
-    ax1_pos = get(ax1,'Position'); % position of first axes
-    ax1_tightIn = get(ax1,'TightInset'); % position of first axes
-    %get(ax1)
-    set(ax1,'XAxisLocation','top','YAxisLocation','left');
+    set(ax1,'YGrid','on');
+    set(ax1,'XAxisLocation','bottom','YAxisLocation','left');
     patch = fill([t2*1e3,fliplr(t2*1e3)],[1e6*( Datas_mu1 + Datas_std1 ),fliplr(1e6*( Datas_mu1 - Datas_std1 ))],...
       get(l,'color'),'Parent',ax1,'FaceAlpha',0.2, 'EdgeColor','none');
   
-    ax2 = axes('Position',[ax1_pos(1),ax1_pos(2),ax1_pos(3)-ax1_tightIn(3),ax1_pos(4)],'XAxisLocation','bottom','YAxisLocation','right','Color','none');
-
-l = line(t1*1e6,1e6*Datas_mu2,'Parent',ax2,'Color','r'); hold on
+      subplot(222)
+      title(sprintf('%d sampled points at %d MHz', length(t1) , Fs1*1e-6 ))
+l = line(t1*1e6,1e6*Datas_mu2,'Color','r'); hold on
+ax2 = gca; % current axes
 patch = fill([t1*1e6,fliplr(t1*1e6)],[1e6*( Datas_mu2 + Datas_std2 ),fliplr(1e6*( Datas_mu2 - Datas_std2 ))],...
-      get(l,'color'),'Parent',ax2,'FaceAlpha',0.2, 'EdgeColor','none');
-    %set(ax2,'Ylim',[0.9*min(1e6*abs(Datas_mu2)) 1.2*max(1e6*abs(Datas_mu2))]);
+    get(l,'color'),'Parent',ax2,'FaceAlpha',0.2, 'EdgeColor','none');
+    set(ax2,'Ylim',[ 0.9*min(min(1e6*Datas_mu1),min(1e6*Datas_mu2)) 1.2*max(max(1e6*Datas_mu1),max(1e6*Datas_mu2)) ]);
     set(ax2,'XColor','r');
     set(ax2,'YColor','r');
+    set(ax2,'YGrid','on');
     ylabel('\mu (\mu W)over  long','fontsize',10)
     xlabel('time (\mu s)')
-
-% figure;
-% x = t1*1e6;
-% curve1 = 1e6*( Datas_mu2 + Datas_std2 ) ;
-% curve2 = 1e6*( Datas_mu2 - Datas_std2 ) ;
-% x2 = [x, fliplr(x)];
-% inBetween = [curve1, fliplr(curve2)] ;
-% patch = fill([t1*1e6,fliplr(t1*1e6)],[1e6*( Datas_mu2 + Datas_std2 ),fliplr(1e6*( Datas_mu2 - Datas_std2 ))],[128 193 219]./255);
-% %patch = fill(x2, inBetween, [128 193 219]./255) ;
-% set(patch, 'edgecolor', 'none');
-% set(patch, 'FaceAlpha', 0.5);
-% get(patch)
+    
+    
+    subplot(223)
+line(freq2(2:end),s2,'Color','k'); hold on ;
+    xlabel('Frequency (Hz)')
+    ylabel('PSD dBm/Hz');
+    ax1 = gca; % current axes
+    set(ax1,'XAxisLocation','bottom','YAxisLocation','left','Color','none');
+% patch = fill([freq2(2:end)*1e-6,fliplr(freq2(2:end)*1e-6)],[s2 + s2_std,fliplr(s2 - s2_std)],...
+%      'k','Parent',ax1,'FaceAlpha',0.2, 'EdgeColor','none');
+    ax1_pos = get(ax1,'Position'); % position of first axes
 
     subplot(224)
     % psdx unit: [raw^2/Hz] = [W^2/Hz] (cf Equation 3)
@@ -133,31 +109,18 @@ patch = fill([t1*1e6,fliplr(t1*1e6)],[1e6*( Datas_mu2 + Datas_std2 ),fliplr(1e6*
 % e1  = MyStat1.Energy_t( raw/(0.45*1e5) );
 % ee1 = MyStat1.Energy_psd( psdx1 ); 
 
-s1 = 10*log(sqrt( psdx1(2:end)/(1e-3) )) ; % dBm/Hz unit
-s2 = 10*log(sqrt( psdx2(2:end)/(1e-3) )) ; % dBm/Hz unit
-line(freq2(2:end),s2,'Color','k'); hold on
-    xlabel('Frequency (Hz)')
-    ylabel('PSD dBm/Hz');
-    ax1 = gca; % current axes
-    set(ax1,'XColor','k');
-    set(ax1,'YColor','k');
-    set(ax1,'Ylim',[min([s1(:);s2(:)])-10 , 10 + max([s1(:);s2(:)])] );
-    set(ax1,'XAxisLocation','top','YAxisLocation','left','Color','none');
-    
-ax1_pos = get(ax1,'Position'); % position of first axes
-ax1_tightIn = get(ax1,'TightInset'); % position of first axes
-ax2 = axes('XAxisLocation','bottom','YAxisLocation','right','Color','none','Position',ax1_pos);
-get(ax1,'DataAspectRatio')
-get(ax2,'DataAspectRatio')
-
-line(freq1(2:end)*1e-6,s1,'Parent',ax2,'Color','r'); 
-     set(ax2,'Ylim',get(ax1,'Ylim'));
+line(freq1(2:end)*1e-6,s1,'Color','r'); hold on ;
+     ax2 = gca;
      %set(ax2,'Xlim',[min(freq1*1e-6) max(freq1*1e-6)]);
      set(ax2,'XColor','r');
-    set(ax2,'YColor','r');
-    xlabel('Frequency (MHz)')
-    ylabel('PSD dBm/Hz');
-
+     set(ax2,'YColor','r');
+     xlabel('Frequency (MHz)')
+     ylabel('PSD dBm/Hz');
+%  patch = fill([freq1(2:end)*1e-6,fliplr(freq1(2:end)*1e-6)],[s1 + s1_std,fliplr(s1 - s1_std)],...
+%      get(l,'color'),'Parent',ax2,'FaceAlpha',0.2, 'EdgeColor','none');
+    %set(ax2,'Ylim',[ 0.9*min(min(s1),min(s2)) 1.2*max(max(s1),max(s2)) ]);
+    
+    
     set(findall(Hmu,'-property','FontSize'),'FontSize',8) 
     
 %    figure(2); hold on ; plot( 1e6*Datas_mu1 , Datas_std1./sqrt(Ephoton*BW*abs(Datas_mu1)) , 'o') ;  
@@ -166,8 +129,18 @@ line(freq1(2:end)*1e-6,s1,'Parent',ax2,'Color','r');
 %     ylabel('\sigma / \sigma_{sn} over sort ')
 
     
-
+    %% 2-d raw datas
+    Hmu = figure(2); clf(Hmu,'reset');
+    set(Hmu,'color','w')
+    imagesc(1e3*t2,1e6*t1,1e3*raw);
+    set(gca,'XAxisLocation','top');
+    xlabel('t2( ms )')
+    ylabel('t1( \mu s )')
+    cb = colorbar;
+    ylabel(cb,'mVolt')
+    colormap(parula)
+    title(sprintf('Number of traces = %d',size(raw,2)))
     
     
-    
+    %%
     
