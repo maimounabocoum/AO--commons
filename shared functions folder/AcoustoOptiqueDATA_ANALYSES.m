@@ -1,9 +1,12 @@
 %% =============== add subfolders ===============  %%
 
  addpath('..\..\AO--commons\shared functions folder')
+ addpath('..\..\..\AO--commons\common subfunctions')
 %  addpath('gui');
 %  addpath('sequences');
 %  addpath('subfunctions');
+
+%( for simulated datas: go to D:\AO--simulations\Noise and run "main.m" file )
  
  %% =============== load datas ===============  %%
  
@@ -19,15 +22,17 @@
      Ephoton = h*(3e8/lambda);
      Fs1 = SampleRate ;     % gage sampling frequncy
      Fs2 = Frep ;           % triggerbox sampling frequency
-     BW = 150e6 ;           % photo-detector bandwith
+     
      % definition of 2 structure for data analyses:
      MyStat1 = stats_t( Fs1 );
      MyStat2 = stats_t( Fs2 );
      unit = 'W';
-     %alpha = 1/(0.45*1e5) ; % convertion W/Volt - thorlabs
-     alpha = (200e-6)/0.3057 ; % convertion W/Volt - Menlo
-    
-
+     %alpha = 1/(0.45*1e5) ;   % convertion W/Volt - thorlabs
+     %alpha = (200e-6)/0.3057 ; % convertion W/Volt - Menlo
+     %BW = 150e6 ;           % photo-detector bandwith
+     
+     alpha = (18e-6)/0.3057 ; % Thorlabs InGa DET10N/M + transimpedance 
+     BW = 70e6 ;               % Thorlabs InGa DET10N/M 
     
     %% 1d-noise plots
     
@@ -45,15 +50,25 @@
      Datas_std2  = MyStat2.standard_dev( alpha*raw');
      [freq1 , PSDx1 , unit_psdx1  ] = MyStat1.PowSpecDens( alpha*raw  , unit )  ; % acquisition quick
      [freq2 , PSDx2 , unit_psdx2  ] = MyStat2.PowSpecDens( alpha*raw' , unit ) ; % acquisition long
+     
+     % power spectral density in [W]^2/Hz
      psdx1 = mean(PSDx1,2)';
      psdx2 = mean(PSDx2,2)';
+     
+     % power spectral density variance:
      psdx1_std = sqrt(var(PSDx1,0,2))';
      psdx2_std = sqrt(var(PSDx2,0,2))';
-     s1 = 10*log(sqrt( psdx1(2:end)/(1e-3) )) ; % dBm/Hz unit
-     s2 = 10*log(sqrt( psdx2(2:end)/(1e-3) )) ; % dBm/Hz unit
-     s1_std = 10*log(sqrt( psdx1_std(2:end)/(1e-3) )) ; % dBm/Hz unit
-     s2_std = 10*log(sqrt( psdx2_std(2:end)/(1e-3) )) ; % dBm/Hz unit
      
+     % power spectral density in dBm/sqrt(Hz)
+     s1 = 10*log(sqrt( psdx1(2:end)/(1e-3) )) ; % dBm/sqrt(Hz) unit
+     s2 = 10*log(sqrt( psdx2(2:end)/(1e-3) )) ; % dBm/sqrt(Hz) unit
+     s1_std = 10*log(sqrt( psdx1_std(2:end)/(1e-3) )) ; % dBm/sqrt(Hz) unit
+     s2_std = 10*log(sqrt( psdx2_std(2:end)/(1e-3) )) ; % dBm/Hz unit
+     % shot noise level:
+     psdn1_std = 2*(mean(Datas_mu1)*Ephoton*BW)/(max(freq1)) ;
+     psdn2_std = 2*(mean(Datas_mu2)*Ephoton*BW)/(max(freq2)) ;
+     n1_std = 10*log(sqrt( psdn1_std/(1e-3) )) ; % dBm/sqrt(Hz) unit
+     n2_std = 10*log(sqrt( psdn2_std/(1e-3) )) ; % dBm/sqrt(Hz) unit
      
     t1 = (1/Fs1)*(1:size(raw,1)); % s
     t2 = (1/Fs2)*(1:size(raw,2)); % s
@@ -88,8 +103,10 @@ patch = fill([t1*1e6,fliplr(t1*1e6)],[1e6*( Datas_mu2 + Datas_std2 ),fliplr(1e6*
     
     subplot(223)
 line(freq2(2:end),s2,'Color','k'); hold on ;
+yline(n2_std,'Color','g','LineStyle','--','linewidth',3);
+title('Spectral Density relative to shot noise')
     xlabel('Frequency (Hz)')
-    ylabel('PSD dBm/Hz');
+    ylabel('PSD dBm/$$\sqrt{Hz}$$','Interpreter','latex');
     ax1 = gca; % current axes
     set(ax1,'XAxisLocation','bottom','YAxisLocation','left','Color','none');
 % patch = fill([freq2(2:end)*1e-6,fliplr(freq2(2:end)*1e-6)],[s2 + s2_std,fliplr(s2 - s2_std)],...
@@ -110,18 +127,21 @@ line(freq2(2:end),s2,'Color','k'); hold on ;
 % ee1 = MyStat1.Energy_psd( psdx1 ); 
 
 line(freq1(2:end)*1e-6,s1,'Color','r'); hold on ;
+yline(n1_std,'Color','g','LineStyle','--','linewidth',3);
      ax2 = gca;
      %set(ax2,'Xlim',[min(freq1*1e-6) max(freq1*1e-6)]);
+     title('Spectral Density relative to shot noise')
      set(ax2,'XColor','r');
      set(ax2,'YColor','r');
      xlabel('Frequency (MHz)')
-     ylabel('PSD dBm/Hz');
+     ylabel('PSD dBm/$$\sqrt{Hz}$$','Interpreter','latex');
+    
 %  patch = fill([freq1(2:end)*1e-6,fliplr(freq1(2:end)*1e-6)],[s1 + s1_std,fliplr(s1 - s1_std)],...
 %      get(l,'color'),'Parent',ax2,'FaceAlpha',0.2, 'EdgeColor','none');
     %set(ax2,'Ylim',[ 0.9*min(min(s1),min(s2)) 1.2*max(max(s1),max(s2)) ]);
     
     
-    set(findall(Hmu,'-property','FontSize'),'FontSize',8) 
+    set(findall(Hmu,'-property','FontSize'),'FontSize',11) 
     
 %    figure(2); hold on ; plot( 1e6*Datas_mu1 , Datas_std1./sqrt(Ephoton*BW*abs(Datas_mu1)) , 'o') ;  
 %    %figure; plot( 1e6*Datas_mu1 , Datas_std1./Datas_mu1  , 'o') ;
