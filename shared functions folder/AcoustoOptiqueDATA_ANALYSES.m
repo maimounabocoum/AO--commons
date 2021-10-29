@@ -31,8 +31,9 @@
      %alpha = (200e-6)/0.3057 ; % convertion W/Volt - Menlo
      %BW = 150e6 ;           % photo-detector bandwith
      
-     alpha = (18e-6)/0.3057 ; % Thorlabs InGa DET10N/M + transimpedance 
-     BW = 70e6 ;               % Thorlabs InGa DET10N/M 
+     % alpha = (18e-6)/0.3057 ; % Thorlabs InGa DET10N/M + transimpedance 
+     alpha = 1e6/(2*pi);        % Sylentsys conversion factor => MHz/Volt conversion
+     BW = 70e6 ;                % Thorlabs InGa DET10N/M 
     
     %% 1d-noise plots
     
@@ -55,13 +56,23 @@
      psdx1 = mean(PSDx1,2)';
      psdx2 = mean(PSDx2,2)';
      
+
      % power spectral density variance:
      psdx1_std = sqrt(var(PSDx1,0,2))';
      psdx2_std = sqrt(var(PSDx2,0,2))';
      
+     hold on
+     loglog(freq1(3:end),psdx1(3:end));
+     xlabel('frequency(Hz)')
+     ylabel('psd(Hz^2/Hz)')
+     
      % power spectral density in dBm/sqrt(Hz)
      s1 = 10*log(sqrt( psdx1(2:end)/(1e-3) )) ; % dBm/sqrt(Hz) unit
      s2 = 10*log(sqrt( psdx2(2:end)/(1e-3) )) ; % dBm/sqrt(Hz) unit
+     
+     
+     
+     
      s1_std = 10*log(sqrt( psdx1_std(2:end)/(1e-3) )) ; % dBm/sqrt(Hz) unit
      s2_std = 10*log(sqrt( psdx2_std(2:end)/(1e-3) )) ; % dBm/Hz unit
      % shot noise level:
