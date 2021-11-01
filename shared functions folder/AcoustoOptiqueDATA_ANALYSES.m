@@ -56,19 +56,30 @@
      psdx1 = mean(PSDx1,2)';
      psdx2 = mean(PSDx2,2)';
      
+%%
+     D = ReadHighFinessFile('D:\datas\2021-10-29\HIghfiness_PSD_13mW.txt');
 
      % power spectral density variance:
      psdx1_std = sqrt(var(PSDx1,0,2))';
      psdx2_std = sqrt(var(PSDx2,0,2))';
      
+     figure;
      hold on
-     loglog(freq1(3:end),psdx1(3:end));
+     loglog( D.data(:,1) , D.data(:,2).^2 );
+     
+     %loglog(D.data(:,1),10.^( D.data(:,2)/10 )/max( 10.^( D.data(:,2)/10 ) ));
+     
+     figure 
+     hold on
+     loglog(freq1(2:end),1e6*psdx1(2:end));
      xlabel('frequency(Hz)')
-     ylabel('psd(Hz^2/Hz)')
+     ylabel('psd(Hz/Hz')
+
      
      % power spectral density in dBm/sqrt(Hz)
      s1 = 10*log(sqrt( psdx1(2:end)/(1e-3) )) ; % dBm/sqrt(Hz) unit
      s2 = 10*log(sqrt( psdx2(2:end)/(1e-3) )) ; % dBm/sqrt(Hz) unit
+     
      
      
      
