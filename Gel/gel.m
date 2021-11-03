@@ -7,24 +7,25 @@
 %lambda           en nm  (valid for 400 nm < lambda < 1100 nm)
 %concAgar         en pourcentage massique
 %concIntralipid   en pourcentage massique
-%Youngmodulus  en kPa
+%Youngmodulus     en kPa
 %mu_sprime        en cm^-1
 %mu_a             en cm^-1
 %masse de gel     en g%
 
-lambda=1064;
+lambda = 800;
 
-% concAgar=0.0135;
-% concIntralipid=0.1269;
-% concInkSolution=0;
+concAgar = 0;
+concIntralipid = 1;
+concInkSolution = 0;
+% 
+% Youngmodulus=50;
+% mu_sprime= 7.4;
+% mu_a=0;
+% massGel = 182 ;
 
-Youngmodulus=60;
-mu_sprime= 10;
-mu_a=0;
-massGel=5*5*3;
 
-
-
+% massIntralipid/(massWater+massInkSolution+massAgar+massIntralipid)
+% massIntralipid/(massWater)
 
 %% programme principal (pas besoin de toucher normalement)
 rep=input('propriétés physiques (1) sinon nimporte quelle touche\n'); 

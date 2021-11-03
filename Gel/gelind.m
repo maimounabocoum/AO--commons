@@ -1,4 +1,4 @@
-function [Youngmodulus,mu_sprime,mu_a]=gelind(lambda,concAgar,concIntralipid,concInkSolution)
+function [Youngmodulus,mu_s,mu_sprime,mu_a]=gelind(lambda,concAgar,concIntralipid,concInkSolution)
 
 %units convention
 %lambda           en nm     (valid for 400 nm < lambda < 1100 nm)
@@ -21,11 +21,12 @@ Youngmodulus=142176*concAgar^(1.87);
 %équation de diffusion  van Staveren, et al., Light scattering in
 %Intralipid-10% in the wavelength range of 400-1100 nm, AO, 1991:
 g = 1.1-0.00058*lambda;
-mu_s=2.536*10^(9)*lambda^(-2.4)*concIntralipid;  %ATTENTION il s'agit d'intralipides 10%
-mu_sprimeuncorrected=mu_s*(1-g);
+%g = 1.1-0.58*(lambda*1e6); % conversion to SI unit
+mu_s=2.536*10^(9)*(lambda).^(-2.4)*concIntralipid;  %ATTENTION il s'agit d'intralipides 10%
+mu_sprimeuncorrected = mu_s.*(1-g);
 mu_agarfactor=1-2.6038*concAgar^(0.4948);
 
-mu_sprime=mu_sprimeuncorrected*mu_agarfactor;
+mu_sprime = mu_sprimeuncorrected*mu_agarfactor;
 
 %équation d'absorption  Linear absorption. Stock solution equation obtained
 %by curve-fitting on absorption spectrum of the stock solution:
