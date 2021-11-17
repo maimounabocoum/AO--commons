@@ -2,23 +2,17 @@
 clearvars;
 
 lambda = 800;
-concAgar = 0 ;
+concAgar = 2.79/182 ;
 concInkSolution = 0; % en pourcentage massique
-MU_s = [];
-for nplot = [0:500];
+concIntra = 1.0149/182 ;
+
+for nplot = 1:length(concIntra)
 % inpout masse volumique
-concIntralipid = (nplot*0.9729)/3000;  % en pourcentage massique
 
-[Youngmodulus,mu_s,mu_sprime,mu_a]=gelind(lambda,concAgar,concIntralipid,concInkSolution);
-
-MU_s = [MU_s,mu_s];
+[Youngmodulus,mu_s,mu_sprime,mu_a]=gelind(lambda,concAgar,concIntra(nplot),concInkSolution)
 
 end
 
-figure
-plot([0:500],MU_s/log(10),'-o')
-xlabel('Volume of intralipide (ml)')
-ylabel('Attenuation 10^{-x}')
 
 
 %% concentration at 800nm for increasing mu_s and mu_s_prim
