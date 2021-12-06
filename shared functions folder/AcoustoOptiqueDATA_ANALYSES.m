@@ -32,13 +32,14 @@
      %BW = 150e6 ;           % photo-detector bandwith
      
      % alpha = (18e-6)/0.3057 ; % Thorlabs InGa DET10N/M + transimpedance 
-     alpha = 1e6/(2*pi);        % Sylentsys conversion factor => MHz/Volt conversion
+     %alpha = 1e6/(2*pi);       % Sylentsys conversion factor => Hz/Volt conversion
+     alpha = 19e6;              % Highfiness conversion factor => Hz/Volt conversion
      BW = 70e6 ;                % Thorlabs InGa DET10N/M 
     
     %% 1d-noise plots
     
-    Hmu = figure(1); clf(Hmu,'reset');
-    set(Hmu,'color','w')
+%     Hmu = figure(1); clf(Hmu,'reset');
+%     set(Hmu,'color','w')
     % set(Hmu,'units','normalized','outerposition',[0 0 1 1])
     %set(Hmu,'WindowStyle','docked'); 
     % raw/(0.45*1e5)  [V]unit x [W/V] = [W]unit - SI PD
@@ -57,21 +58,21 @@
      psdx2 = mean(PSDx2,2)';
      
 %%
-     D = ReadHighFinessFile('D:\datas\2021-10-29\HIghfiness_PSD_13mW.txt');
+     D = ReadHighFinessFile('D:\datas\2021-11-12\PSD_13mW-res10Hz.txt');
 
      % power spectral density variance:
      psdx1_std = sqrt(var(PSDx1,0,2))';
      psdx2_std = sqrt(var(PSDx2,0,2))';
      
-     figure;
-     hold on
-     loglog( D.data(:,1) , D.data(:,2).^2 );
+%      figure;
+%      hold on
+%      loglog( D.data(:,1) , D.data(:,2) );
      
      %loglog(D.data(:,1),10.^( D.data(:,2)/10 )/max( 10.^( D.data(:,2)/10 ) ));
      
      figure 
      hold on
-     loglog(freq1(2:end),1e6*psdx1(2:end));
+     loglog(freq1(2:end),psdx1(2:end));
      xlabel('frequency(Hz)')
      ylabel('psd(Hz/Hz')
 
